@@ -47,15 +47,15 @@ int main(int argc, char **argv)
 		exit(-1);
 	}
 
-	int server;
-	server = connect_to_host(argv[1], atoi(argv[2]));
+	int server; // 指向前面那个被维护在内核里的socket数据结构
+	server = connect_to_host(argv[1], atoi(argv[2])); // atoi convert string to int
 
-	while(TRUE){
+	while(TRUE){ 
 		printf("\n[PA1-Client@CSE489/589]$ ");
-		fflush(stdout);
+		fflush(stdout); // 清空缓冲区
 
-		char *msg = (char*) malloc(sizeof(char)*MSG_SIZE);
-    	memset(msg, '\0', MSG_SIZE);
+		char *msg = (char*) malloc(sizeof(char)*MSG_SIZE); // 分配地址
+    	memset(msg, '\0', MSG_SIZE); // 给msg填充'\0'
 		if(fgets(msg, MSG_SIZE-1, stdin) == NULL) //Mind the newline character that will be written to msg
 			exit(-1);
 

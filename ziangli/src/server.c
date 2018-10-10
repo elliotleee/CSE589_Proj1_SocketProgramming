@@ -51,7 +51,7 @@ int main(int argc, char **argv)
 
 	int port, server_socket, head_socket, selret, sock_index, fdaccept=0, caddr_len;
 	struct sockaddr_in server_addr, client_addr;
-	fd_set master_list, watch_list;
+	fd_set master_list, watch_list; // 
 
 	/* Socket */
 	server_socket = socket(AF_INET, SOCK_STREAM, 0);
