@@ -16,6 +16,8 @@
 #define PORT "3490" // 提供给用戶连接的 port
 #define BACKLOG 10 // 有多少个特定的连接队列（pending connections queue）
 
+using namespace std;
+
 void sigchld_handler(int s)
 {
   while(waitpid(-1, NULL, WNOHANG) > 0);

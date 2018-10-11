@@ -16,6 +16,8 @@
 #define PORT "3490" // Client 所要连接的 port
 #define MAXDATASIZE 100 // 我们一次可以收到的最大字节数量（number of bytes）
 
+using namespace std;
+
 // 取得 IPv4 或 IPv6 的 sockaddr：
 void *get_in_addr(struct sockaddr *sa) // sockaddr for sa_family and sa_data[14]->destination and port number
 {
