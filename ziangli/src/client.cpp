@@ -12,6 +12,12 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
+#include <iostream>
+#include "../include/global.h"
+#include "../include/logger.h"
+using namespace std;
+
+
 
 #define PORT "3490" // Client 所要连接的 port
 #define MAXDATASIZE 100 // 我们一次可以收到的最大字节数量（number of bytes）
@@ -33,6 +39,8 @@ int main(int argc, char *argv[])
 　　struct addrinfo hints, *servinfo, *p;
 　　int rv;
 　　char s[INET6_ADDRSTRLEN];
+    char lines[MAX_BUF_LEN];
+    char *command;
 
 　　if (argc != 2) {
 　　　　fprintf(stderr,"usage: client hostname\n");
@@ -58,12 +66,14 @@ int main(int argc, char *argv[])
 　　　　if ((sockfd = socket(p->ai_family, p->ai_socktype, // int socket(int domain, int type, int protocol) return socket descriptor 
 　　　　　　p->ai_protocol)) == -1) {
 　　　　　　perror("client: socket");
+        //    cse4589_print_and_log('Can not create a socket.')
 　　　　　　continue;
 　　　　}
 
 　　　　if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
 　　　　　　close(sockfd);
 　　　　　　perror("client: connect");
+        //    cse4589_print_and_log('Connection failed.')
 　　　　　　continue;
 　　　　}
 
@@ -72,6 +82,7 @@ int main(int argc, char *argv[])
 
 　　if (p == NULL) {
 　　　　fprintf(stderr, "client: failed to connect\n");
+       cse4589_print_and_log('Connection failed. No connection')
 　　　　return 2;
 　　}
 
@@ -81,8 +92,13 @@ int main(int argc, char *argv[])
 
 　　freeaddrinfo(servinfo); // 全部皆以这个 structure 完成
 
+    fgets(lines, MAX_BUF_LEN, cin)
+
+    command = strtok(lines, "\n");
+
 　　if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
 　　　　perror("recv");
+       cse4589_print_and_log('Received data out of range')
 　　　　exit(1);
 　　}
 
