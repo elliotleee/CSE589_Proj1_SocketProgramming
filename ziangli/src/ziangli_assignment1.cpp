@@ -22,9 +22,46 @@
  */
 #include <iostream>
 #include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
+#include <errno.h>
+#include <string.h>
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <netdb.h>
+#include <arpa/inet.h>
+#include <sys/wait.h>
+#include <signal.h>
+#include <string>
 
 #include "../include/global.h"
 #include "../include/logger.h"
+
+string getIPAddress(){
+    string ipAddress="Unable to get IP Address";
+    struct ifaddrs *interfaces = NULL;
+    struct ifaddrs *temp_addr = NULL;
+    int success = 0;
+    // retrieve the current interfaces - returns 0 on success
+    success = getifaddrs(&interfaces);
+    if (success == 0) {
+        // Loop through linked list of interfaces
+        temp_addr = interfaces;
+        while(temp_addr != NULL) {
+            if(temp_addr->ifa_addr->sa_family == AF_INET) {
+                // Check if interface is en0 which is the wifi connection on the iPhone
+                if(strcmp(temp_addr->ifa_name, "en0")){
+                    ipAddress=inet_ntoa(((struct sockaddr_in*)temp_addr->ifa_addr)->sin_addr);
+                }
+            }
+            temp_addr = temp_addr->ifa_next;
+        }
+    }
+    // Free memory
+    freeifaddrs(interfaces);
+    return ipAddress;
+}
 
 void *get_in_addr(struct sockaddr *sa)
 {
@@ -52,16 +89,13 @@ int main(int argc, char **argv)
     fclose(fopen(LOGFILE, "w"));
 
 	/*Start Here*/
-	int sockfd;
-	struct addrinfo hints, *servinfo, *p;
-	int rv;
-
-	memset(&hints, 0, sizeof hints); // 确保 struct 为空
-　　hints.ai_family = AF_UNSPEC; // good for ipv4 and ipv6
-　　hints.ai_socktype = SOCK_STREAM;
+	char* p_end;
+	long int port = strtol(argv[2], &p_end, 10);
+	
+	string command_str;
 
 	if (argc != 2) {
-		cse4589_print_and_log('Parameters error');
+		cse4589_print_and_log("Parameters error");
 		exit(1);
 　　}
 
@@ -73,6 +107,31 @@ int main(int argc, char **argv)
 		create_sock_client(argv[2])
 	}
 	
+	while(1) {
+		getline(cin, command_str);
+
+		if(strcmp(command, "AUTHOR") == 0) {
+			cse4589_print_and_log("[%s:SUCCESS]\n", command_str);
+			string ubit_name = 'lchen76';
+			cse4589_print_and_log("I, %s, have read and understood the course academic integrity policy.\n", ubit_name);
+			cse4589_print_and_log("[%s:ERROR]\n", command_str);
+		}
+		else if(strcmp(command, "IP") == 0) {
+			cse4589_print_and_log("[%s:SUCCESS]\n", command_str);
+			string ip_address = getIPAddress();
+			cse4589_print_and_log("IP:%s\n", ip_address);
+			cse4589_print_and_log("[%s:ERROR]\n", command_str);
+		}
+		else if(strcmp(command, "IP") == 0) {
+			cse4589_print_and_log("[%s:SUCCESS]\n", command_str);
+			cse4589_print_and_log("PORT:%d\n", port);
+			cse4589_print_and_log("[%s:ERROR]\n", command_str);
+		}
+		else if(strcmp(command, "LIST") == 0) {
+			 
+		}
+
+	}
 	
 	return 0;
 }
@@ -189,5 +248,75 @@ int create_sock_server(int port) {
 }
 
 int create_sock_client(int port) {
+	int sockfd, numbytes;
+　　char buf[MAXDATASIZE];
+　　struct addrinfo hints, *servinfo, *p;
+　　int rv;
+　　char s[INET6_ADDRSTRLEN];
+    char lines[MAX_BUF_LEN];
+    char *command;
 
+　　if (argc != 2) {
+　　　　fprintf(stderr,"usage: client hostname\n");
+　　　　exit(1);
+　　}
+
+　　memset(&hints, 0, sizeof hints); // 确保 struct 为空
+　　hints.ai_family = AF_UNSPEC; // good for ipv4 and ipv6
+　　hints.ai_socktype = SOCK_STREAM;
+
+// int getaddrinfo(const char *node, // 例如： "www.example.com" 或 IP
+// const char *service, // 例如： "http" 或 port number
+// const struct addrinfo *hints,
+// struct addrinfo **res);
+
+　　if ((rv = getaddrinfo(argv[1], PORT, &hints, &servinfo)) != 0) { // return not zero value when error happen
+　　　　fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv)); // print error with gai_strerror
+　　　　return 1;
+　　}
+    // if success, serinfo指向一个struct addrinfos 的链表
+　　// 用循环取得全部的结果，并先连接到能成功连接的
+　　for(p = servinfo; p != NULL; p = p->ai_next) {
+　　　　if ((sockfd = socket(p->ai_family, p->ai_socktype, // int socket(int domain, int type, int protocol) return socket descriptor 
+　　　　　　p->ai_protocol)) == -1) {
+　　　　　　perror("client: socket");
+        //    cse4589_print_and_log('Can not create a socket.')
+　　　　　　continue;
+　　　　}
+
+　　　　if (connect(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
+　　　　　　close(sockfd);
+　　　　　　perror("client: connect");
+        //    cse4589_print_and_log('Connection failed.')
+　　　　　　continue;
+　　　　}
+
+　　　　break;
+　　}
+
+　　if (p == NULL) {
+　　　　fprintf(stderr, "client: failed to connect\n");
+       cse4589_print_and_log('Connection failed. No connection')
+　　　　return 2;
+　　}
+
+　　inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr), s, sizeof s);
+
+　　printf("client: connecting to %s\n", s);
+
+　　freeaddrinfo(servinfo); // 全部皆以这个 structure 完成
+
+    fgets(lines, MAX_BUF_LEN, cin)
+
+　　if ((numbytes = recv(sockfd, buf, MAXDATASIZE-1, 0)) == -1) {
+　　　　perror("recv");
+       cse4589_print_and_log('Received data out of range')
+　　　　exit(1);
+　　}
+
+　　buf[numbytes] = '\0';
+　　printf("client: received '%s'\n",buf);
+
+　　close(sockfd);
+　　return 0;
 }
