@@ -38,6 +38,8 @@
 #include "../include/global.h"
 #include "../include/logger.h"
 
+using namespace std;
+
 string getIPAddress(){
     string ipAddress="Unable to get IP Address";
     struct ifaddrs *interfaces = NULL;
@@ -50,10 +52,7 @@ string getIPAddress(){
         temp_addr = interfaces;
         while(temp_addr != NULL) {
             if(temp_addr->ifa_addr->sa_family == AF_INET) {
-                // Check if interface is en0 which is the wifi connection on the iPhone
-                if(strcmp(temp_addr->ifa_name, "en0")){
-                    ipAddress=inet_ntoa(((struct sockaddr_in*)temp_addr->ifa_addr)->sin_addr);
-                }
+                ipAddress=inet_ntoa(((struct sockaddr_in*)temp_addr->ifa_addr)->sin_addr);
             }
             temp_addr = temp_addr->ifa_next;
         }
@@ -137,112 +136,140 @@ int main(int argc, char **argv)
 }
 
 int create_sock_server(int port) {
-	int sockfd, new_fd; // 在 sock_fd 进行 listen，new_fd 是新的连接
-  	struct addrinfo hints, *servinfo, *p;
-  	struct sockaddr_storage their_addr; // 连接者的地址资料
-  	socklen_t sin_size;
-  	struct sigaction sa;
-  	int yes=1;
-  	char s[INET6_ADDRSTRLEN];
-  	int rv;
+	fd_set master; // master file descriptor 表
+	fd_set read_fds; // 给 select() 用的暂时 file descriptor 表
+	int fdmax; // 最大的 file descriptor 数目
 
-// hints 参数指向一个你已经填好相关资料的 struct addrinfo
-  	memset(&hints, 0, sizeof hints);
-  	hints.ai_family = AF_UNSPEC;
-  	hints.ai_socktype = SOCK_STREAM;
- 	hints.ai_flags = AI_PASSIVE; // 使用我的 IP
+	int listener; // listening socket descriptor
+	int newfd; // 新接受的 accept() socket descriptor
+	struct sockaddr_storage remoteaddr; // client address
+	socklen_t addrlen;
 
-	if ((rv = getaddrinfo(NULL, PORT, &hints, &servinfo)) != 0) {
-		fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv));
-		return 1;
+	char buf[256]; // 储存 client 数据的缓冲区
+	int nbytes;
+
+	char remoteIP[INET6_ADDRSTRLEN];
+
+	int yes=1; // 供底下的 setsockopt() 设置 SO_REUSEADDR
+	int i, j, rv;
+
+	struct addrinfo hints, *ai, *p;
+
+	FD_ZERO(&master); // 清除 master 与 temp sets
+	FD_ZERO(&read_fds);
+
+	// 给我们一个 socket，并且 bind 它
+	memset(&hints, 0, sizeof hints);
+	hints.ai_family = AF_UNSPEC;
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_PASSIVE;
+
+	if ((rv = getaddrinfo(NULL, PORT, &hints, &ai)) != 0) {
+		fprintf(stderr, "selectserver: %s\n", gai_strerror(rv));
+		exit(1);
 	}
 
-	// 以循环找出全部的结果，并绑定（bind）到第一个能用的结果
-	for(p = servinfo; p != NULL; p = p->ai_next) {
-		if ((sockfd = socket(p->ai_family, p->ai_socktype,
-		p->ai_protocol)) == -1) {
-		perror("server: socket");
+	for(p = ai; p != NULL; p = p->ai_next) {
+		listener = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+		if (listener < 0) {
 		continue;
 		}
 
-		if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &yes,
-			sizeof(int)) == -1) {
-		perror("setsockopt");
-		exit(1);
-		}
+		// 避开这个错误信息："address already in use"
+		setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
 
-		if (bind(sockfd, p->ai_addr, p->ai_addrlen) == -1) {
-		close(sockfd);
-		perror("server: bind");
+		if (bind(listener, p->ai_addr, p->ai_addrlen) < 0) {
+		close(listener);
 		continue;
 		}
 
 		break;
 	}
 
+	// 若我们进入这个判断式，则表示我们 bind() 失败
 	if (p == NULL) {
-		fprintf(stderr, "server: failed to bind\n");
-		return 2;
+		fprintf(stderr, "selectserver: failed to bind\n");
+		exit(2);
 	}
+	freeaddrinfo(ai); // all done with this
 
-	if(p->ai_family == AF_INET){
-		struct sockaddr_in *ipv4 = (struct sockaddr_in *)p->ai_addr;
-		addr = &(ipv4->sin_addr);
-		ipver = "IPv4";
-	} else {
-		struct sockaddr_in6 *ipv6 = (struct sockaddr_in6 *)p->ai_addr;
-		addr = &(ipv6->sin6_addr);
-		ipver = "IPv6";
-	}
-	// convert the IP to a string and print it:
-	　inet_ntop(p->ai_family, addr, ipstr, sizeof ipstr);
-	　printf(" %s: %s\n", ipver, ipstr);
-
-	freeaddrinfo(servinfo); // 全部都用这个 structure; 将链表全部释放
-
-	if (listen(sockfd, BACKLOG) == -1) {
+	// listen
+	if (listen(listener, 10) == -1) {
 		perror("listen");
-		exit(1);
+		exit(3);
 	}
 
-	sa.sa_handler = sigchld_handler; // 收拾全部死掉的 processes
-	sigemptyset(&sa.sa_mask);
-	sa.sa_flags = SA_RESTART;
+	// 将 listener 新增到 master set
+	FD_SET(listener, &master);
 
-	if (sigaction(SIGCHLD, &sa, NULL) == -1) {
-		perror("sigaction");
-		exit(1);
-	}
+	// 持续追踪最大的 file descriptor
+	fdmax = listener; // 到此为止，就是它了
 
-	printf("server: waiting for connections...\n");
+	// 主要循环
+	for( ; ; ) {
+		read_fds = master; // 复制 master
 
-	while(1) { // 主要的 accept() 循环
-	
-	sin_size = sizeof their_addr;
-		new_fd = accept(sockfd, (struct sockaddr *)&their_addr, &sin_size);
-
-		if (new_fd == -1) {
-		perror("accept");
-		continue;
+		if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1) {
+		perror("select");
+		exit(4);
 		}
 
-		inet_ntop(their_addr.ss_family,
-		get_in_addr((struct sockaddr *)&their_addr),
-		s, sizeof s);
-		printf("server: got connection from %s\n", s);
-	
-		if (!fork()) { // 这个是 child process
-		close(sockfd); // child 不需要 listener
+		// 在现存的连接中寻找需要读取的数据
+		for(i = 0; i <= fdmax; i++) {
+		if (FD_ISSET(i, &read_fds)) { // 我们找到一个！！
+			if (i == listener) {
+			// handle new connections
+			addrlen = sizeof remoteaddr;
+			newfd = accept(listener,
+				(struct sockaddr *)&remoteaddr,
+				&addrlen);
 
-		if (send(new_fd, "Hello, world!", 13, 0) == -1)
-			perror("send");
+			if (newfd == -1) {
+				perror("accept");
+			} else {
+				FD_SET(newfd, &master); // 新增到 master set
+				if (newfd > fdmax) { // 持续追踪最大的 fd
+				fdmax = newfd;
+				}
+				printf("selectserver: new connection from %s on "
+				"socket %d\n",
+				inet_ntop(remoteaddr.ss_family,
+					get_in_addr((struct sockaddr*)&remoteaddr),
+					remoteIP, INET6_ADDRSTRLEN),
+				newfd);
+			}
 
-		close(new_fd);
+			} else {
+			// 处理来自 client 的数据
+			if ((nbytes = recv(i, buf, sizeof buf, 0)) <= 0) {
+				// got error or connection closed by client
+				if (nbytes == 0) {
+				// 关闭连接
+				printf("selectserver: socket %d hung up\n", i);
+				} else {
+				perror("recv");
+				}
+				close(i); // bye!
+				FD_CLR(i, &master); // 从 master set 中移除
 
-		exit(0);
-		}
-		close(new_fd); // parent 不需要这个
-	}
+			} else {
+				// 我们从 client 收到一些数据
+				for(j = 0; j <= fdmax; j++) {
+				// 送给大家！
+				if (FD_ISSET(j, &master)) {
+					// 不用送给 listener 跟我们自己
+					if (j != listener && j != i) {
+					if (send(j, buf, nbytes, 0) == -1) {
+						perror("send");
+					}
+					}
+				}
+				}
+			}
+			} // END handle data from client
+		} // END got new incoming connection
+		} // END looping through file descriptors
+	} // END for( ; ; )--and you thought it would never end!
 
 	return 0;
 }
