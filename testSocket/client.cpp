@@ -125,6 +125,8 @@ int main(string MYPORT)
 
    int sockfd;//numbytes;
    //char buf[MAXDATASIZE];
+    // close(sockfd);
+    // return 0;
    struct addrinfo hints, *servinfo,*clientinfo, *p, *p2;
    int rv;
    char s[INET6_ADDRSTRLEN]={""};
@@ -360,7 +362,7 @@ int main(string MYPORT)
         cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0]);
         msg = "";
         for(int i = 2; i < msg_p.size(); ++i){
-          msg += msg_p[i];
+          msg = msg +" "+ msg_p[i];
         }
         msg = "0 " + msg_p[1] + " " + msg;
         if(send(sockfd, msg, strlen(msg), 0) == strlen(msg))
@@ -379,7 +381,31 @@ int main(string MYPORT)
       }else{
       split_msg(msg," ", msg_p);
       switch msg_p[0]{
-      case 
+
+        //message
+        case "0":{
+          
+          msg = "";
+          for(int i = 2; i < msg_p.size(); ++i){
+            msg = msg +" "+ msg_p[i];
+          }
+          log_EVENT(msg_p[1], string msg);
+          cout<<msg_p[1]<<" "<<msg<<endl;
+          break;
+
+        }
+        
+        //update list
+        case "1":{
+
+          for(int i =0; i < (msg_p.size()-1)/3; i++){
+            for(int j = 1; j < msg_p.size(); j++){
+               Clientlist[i][(j-1) mod 3] = msg_p[j];
+            }
+          }
+
+          break;
+        }        
       }
         //handleClientEvents(msg);
       }
@@ -410,7 +436,7 @@ int main(string MYPORT)
    //  printf("client: received '%s'\n",buf);
 //recv message end*****************************    
 
-    close(sockfd);
-    return 0;
+    // close(sockfd);
+    // return 0;
   
 }
