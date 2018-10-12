@@ -38,11 +38,16 @@ int main() {
 	char buf[256]; // 储存 client 数据的缓冲区
 	int nbytes;
 
+    string Clientlist[4][9] = {""};
+    string msg[200][3]={""};
+
 	char remoteIP[INET6_ADDRSTRLEN];
 
 	int yes=1; // 供底下的 setsockopt() 设置 SO_REUSEADDR
 	int i,j, jc,rv;
+    
 
+   vector<string*> clientListInfo
 
 	struct addrinfo hints, *ai, *p;
 
@@ -150,7 +155,6 @@ int main() {
 				if (FD_ISSET(j, &master)) {
 					// 不用送给 listener 跟我们自己
 					if (j != listener && j != i) {
-					printf("%s\n",buf);
 					if (send(j, buf, nbytes, 0) == -1) {
 						perror("send");
 					}
