@@ -134,6 +134,12 @@ int main(int argc, char **argv)
 	
 	return 0;
 }
+void Trans_Fd(int sockfd){
+	struct sockaddr_in sa;
+      int len = sizeof(sa);
+      getpeername(m_sockfd, (struct sockaddr *)&sa, &len);
+      cout << ("ip:%d\n",inet_ntoa(sa.addr) ntohs(sa.sin_port));
+}
 
 int create_sock_server(int port) {
 	fd_set master; // master file descriptor 表
