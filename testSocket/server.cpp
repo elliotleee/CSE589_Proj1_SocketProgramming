@@ -150,6 +150,7 @@ int main() {
 				if (FD_ISSET(j, &master)) {
 					// 不用送给 listener 跟我们自己
 					if (j != listener && j != i) {
+					printf("%s\n",buf);
 					if (send(j, buf, nbytes, 0) == -1) {
 						perror("send");
 					}
