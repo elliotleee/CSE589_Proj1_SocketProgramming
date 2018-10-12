@@ -34,8 +34,9 @@ void *get_in_addr(struct sockaddr *sa) // sockaddr for sa_family and sa_data[14]
 　　return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-int main(int argc, char *argv[])
+int main()
 {
+	
 　　int sockfd, numbytes;
 　　char buf[MAXDATASIZE];
 　　struct addrinfo hints, *servinfo, *p;
