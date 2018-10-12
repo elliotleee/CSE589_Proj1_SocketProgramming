@@ -91,7 +91,7 @@ bool cmp(string p[], string q[]) {
   return p1 < p2;
 }
 
-void log_LIST(string list[][3]) {
+void log_LIST(string list[][9]) {
 string command = "LIST";
 cse4589_print_and_log("[%s:SUCCESS]\n", command);
 string **res = new string*[4];
@@ -116,6 +116,31 @@ string command = "EVENT";
 cse4589_print_and_log("[%s:SUCCESS]\n", command);
 cse4589_print_and_log("msg from:%s\n[msg]:%s\n", client_ip, msg);
 cse4589_print_and_log("[%s:END]\n", command);
+}
+
+void log_STATIC(string list[][9]) {
+	cse4589_print_and_log("[%s:SUCCESS]\n", command);
+	string **res = new string*[4];
+	for (int i = 0; i < 4; ++i) {
+		res[i] = new string[3];
+		res[i][0] = list[i][0];
+		res[i][1] = list[i][1];
+		res[i][2] = list[i][2];
+	}
+	sort(res, res + 4, cmp);
+	for(int i = 0; i < 4; ++i) {
+		if(res[i][0] == "") break;
+		cse4589_print_and_log("%-5d%-35s%-8d%-8d%-8s\n", i, res[i][0], res[i][3], res[i][4], res[i][5]);
+	}
+	cse4589_print_and_log("[%s:END]\n", command);
+}
+
+void log_BLOCKED(string list[][9], string cli_ip) {
+	cse4589_print_and_log("[%s:SUCCESS]\n", command);
+	vector<string> blocked;
+	for(int i = 0; i < 4; ++i){
+		if(list[i][1] == )
+	}
 }
 
 
@@ -221,24 +246,30 @@ int main(int myPORT) {
   		    fflush(stdin);
   		    split_msg(msg," ", msg_p);
  	     	switch msg{
-    		  	case "IP":
+    		  	case "IP":{
       			    Log_IP(myIP);
       			    break;
-     		  	case "AUTHOR":
+				}
+     		  	case "AUTHOR": {
      		  		log_AUTHOR();
      		  		break;
-				case "PORT":
+				   }
+				case "PORT":{
 					log_PORT(myPORT);
 					break;
-				case "LIST":
+				}
+				case "LIST":{
 					log_LIST(Clientlist);
 					break;
-				case "STATIC":
+				}
+				case "STATIC":{
 					log_STATIC(Clientlist);
-					break;      
-				case "BLOCKED":
+					break;     
+				} 
+				case "BLOCKED":{
 					log_BLOCKED(Clientlist);
 					break;
+				}
     		}
       //handleCommands(msg, 1);
     	}else{
