@@ -52,7 +52,7 @@ void split_msg(string& src, const string& separator, vector<string>& dest)
     dest.push_back(substring);
 }
 
-void log_IP(string ip) {
+void log_IP(string ip){
 string command = "IP";
 cse4589_print_and_log("[%s:SUCCESS]\n", command);
 cse4589_print_and_log("IP:%s\n", ip);
@@ -143,7 +143,7 @@ int main(string MYPORT)
    string myServerInfo[2]={""};
    string myHostname;
    char Hostname_char[40];
-   string BlockList[3];
+   vector<string> BlockList;
 
 
 
@@ -273,12 +273,22 @@ int main(string MYPORT)
           log_REFRESH();
 
       case "BROADCAST":
+          if(send(sockfd, msg, strlen(msg), 0) == strlen(msg))
+            printf("Done!\n");
+
 
 
       case "BLOCK":
+          if()
+          BlockList.push_back(msg_p[1]);
+          if(send(sockfd, msg, strlen(msg), 0) == strlen(msg))
+            printf("Done!\n")
 
 
       case "UNBLOCK":
+          BlockList.pop(msg_p[1]);
+          if(send(sockfd, msg, strlen(msg), 0) == strlen(msg))
+            printf("Done!\n")
 
       case "SEND":
 
@@ -304,13 +314,13 @@ int main(string MYPORT)
 
 
 //send message here*****************************   
-char *msg = (char*) malloc(sizeof(char)*MSG_SIZE);
-    memset(msg, '\0', MSG_SIZE);
-        if(fgets(msg, MSG_SIZE-1, stdin) == NULL) //Mind the newline character that will be written to msg
-            exit(-1);
-        printf("\nSENDing it to the remote server ... ");
-        if(send(sockfd, msg, strlen(msg), 0) == strlen(msg))
-            printf("Done!\n");
+// char *msg = (char*) malloc(sizeof(char)*MSG_SIZE);
+//     memset(msg, '\0', MSG_SIZE);
+//         if(fgets(msg, MSG_SIZE-1, stdin) == NULL) //Mind the newline character that will be written to msg
+//             exit(-1);
+//         printf("\nSENDing it to the remote server ... ");
+//         if(send(sockfd, msg, strlen(msg), 0) == strlen(msg))
+//             printf("Done!\n");
 //send message end*****************************    
 
 //recv message start*****************************    
