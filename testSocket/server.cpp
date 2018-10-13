@@ -376,8 +376,8 @@ int main(int myPORT) {
 									if(Clientlist[i][5] == 1){
 										send(Clientlist[i][9], msg, strlen(msg), 0) == strlen(msg);
 										msg = msg_p[3];
-										for(int i = 4; i < msg_p.size(); ++i){
-											msg = msg +" "+ msg_p[i];
+										for(int m = 4; m < msg_p.size(); m++){
+											msg = msg +" "+ msg_p[m];
 										}
 										log_EVENT(msg_p[1], string msg, msg_p[2]);
 									}
@@ -385,8 +385,8 @@ int main(int myPORT) {
 										temp_buffer[0] = msg_p[1];
 										temp_buffer[1] = msg_p[2];
 										msg = msg_p[3];
-										for(int i = 4; i < msg_p.size(); ++i){
-											msg = msg +" "+ msg_p[i];
+										for(int n = 4; n < msg_p.size(); n++){
+											msg = msg +" "+ msg_p[n];
 										}
 										temp_buffer[2] = msg;
 										buffer.push_back(temp_buffer);
@@ -496,10 +496,15 @@ int main(int myPORT) {
 				        				tempsockfd = stoi(Clientlist[i][9]);
 				        				send(tempsockfd, msg, strlen(msg), 0);
 				        			}else{
-				        				//write into buffer
+				        				temp_buffer[0] = msg_p[1];
+										temp_buffer[1] = Clientlist[i][1];
+										msg = msg_p[2];
+										for(int n = 3; n < msg_p.size(); n++){
+											msg = msg +" "+ msg_p[n];
+										}
+										temp_buffer[2] = msg;
+										buffer.push_back(temp_buffer);
 				        			}
-
-
                            		}
 				        	}
 				            break;
