@@ -626,6 +626,9 @@ int server_process(string myPORT) {
 							        }      
 							        //broadcast
 							        case 6:{
+										// for(int i = 0; i < 4; ++i){
+										// 	if()
+										// }
 							        	for(int i = 0 ; i<4 ;i++){
 							        		if(ClientList[i][1] != ""){
 							        			if(ClientList[i][5] == "1"){
@@ -633,7 +636,7 @@ int server_process(string myPORT) {
 							        				send(tempsockfd, (const char*)msg.c_str(), msg.length(), 0);
 							        				msg = msg_p[2];
 													for(int n = 3; n < msg_p.size(); n++){
-														msg = msg +" "+ msg_p[n];
+														msg = msg +blank+ msg_p[n];
 													}
 							        				log_EVENTS(msg_p[1],msg,ClientList[i][1]);
 							        			}else{
@@ -795,38 +798,50 @@ int client_process(string MYPORT)
             case 1:{
                cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0].c_str());
                   //need change
-                  myServerInfo[0] = msg_p[1]; //ip
-                  myServerInfo[1] = msg_p[2]; //port
-                      
-                      //need change form of data here
-                      if ((rv = getaddrinfo(myServerInfo[0].c_str(), myServerInfo[1].c_str(), &hints, &clientinfo)) != 0) { // return not zero value when error happen
-                          //fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv)); // print error with gai_strerror
-                          cse4589_print_and_log("[%s:ERROR]\n", msg_p[0]);
-                           break;
-                           }
-                       for(p2 = servinfo; p2 != NULL; p2 = p2->ai_next) {
-                         if (connect(sockfd, p2->ai_addr, p2->ai_addrlen) == -1) {
-                            close(sockfd);
-                            //perror("client: connect");
-                            continue;
-                          }
-                          break;
-                        }
-                        if (p2 == NULL) {
-                        //fprintf(stderr, "client: failed to connect\n");
-                        cse4589_print_and_log("[%s:ERROR]\n", msg_p[0].c_str());
-                        break;
-                        }
+				  if(valid_ip(msg_p[1])){
+					struct in_addr my_ip;
+					inet_pton(AF_INET, (const char*)msg_p[1].c_str(), (void*)&my_ip);
+						
+						//need change form of data here
+						if ((rv = getaddrinfo(my_ip, msg_p[2].c_str(), &hints, &clientinfo)) != 0) { // return not zero value when error happen
+							//fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv)); // print error with gai_strerror
+							cse4589_print_and_log("[%s:ERROR]\n", msg_p[0]);
+							break;
+							}
+							if(myServerInfo[0] == msg_p[1]){
+								send(sockfd, (const char*)msg.c_str(), msg.length(), 0);
+								cse4589_print_and_log("[%s:END]\n", msg_p[0].c_str());
+								break;
+							}else{
+								myServerInfo[0] = msg_p[1]; //ip
+								myServerInfo[1] = msg_p[2]; //port
+								for(p2 = servinfo; p2 != NULL; p2 = p2->ai_next) {
+									if (connect(sockfd, p2->ai_addr, p2->ai_addrlen) == -1) {
+										close(sockfd);
+										//perror("client: connect");
+										continue;
+									}
+									break;
+									}
+									if (p2 == NULL) {
+									//fprintf(stderr, "client: failed to connect\n");
+									cse4589_print_and_log("[%s:ERROR]\n", msg_p[0].c_str());
+									break;
+									}
 
-                     inet_ntop(p2->ai_family, get_in_addr((struct sockaddr *)p2->ai_addr), s, sizeof s);
-           
-                     //printf("client: connecting to %s\n", s);
-                     freeaddrinfo(servinfo); // 全部皆以这个 structure 完成
-                     string temp_num = "1 ";
-                     msg = temp_num + myCLientInfo[0] + blank + myCLientInfo[1] + blank +myCLientInfo[2];
-                     if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
-                        //printf("Done!\n");
-                  cse4589_print_and_log("[%s:END]\n", msg_p[0].c_str());
+								inet_ntop(p2->ai_family, get_in_addr((struct sockaddr *)p2->ai_addr), s, sizeof s);
+					
+								//printf("client: connecting to %s\n", s);
+								freeaddrinfo(servinfo); // 全部皆以这个 structure 完成
+								string temp_num = "1 ";
+								msg = temp_num + myCLientInfo[0] + blank + myCLientInfo[1] + blank +myCLientInfo[2];
+								send(sockfd, (const char*)msg.c_str(), msg.length(), 0);
+									//printf("Done!\n");
+							cse4589_print_and_log("[%s:END]\n", msg_p[0].c_str());
+							}
+				  		}else{
+					  cse4589_print_and_log("[%s:ERROR]\n", msg_p[0].c_str());
+				  	}
                } 
             case 2:{
 				        cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0].c_str());
