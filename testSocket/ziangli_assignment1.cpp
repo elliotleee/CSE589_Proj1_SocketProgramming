@@ -35,8 +35,8 @@
 #include <signal.h>
 #include <string>
 
-#include "../include/global.h"
-#include "../include/logger.h"
+#include "./include/global.h"
+#include "./include/logger.h"
 
 using namespace std;
 
