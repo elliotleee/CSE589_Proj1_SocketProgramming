@@ -412,6 +412,12 @@ int main(int myPORT) {
 							for(int i = 0; i < 4; ++i) {
 								if(clientlist[i][1] == host_ip) {
 									clientlist[i][5] = 1;
+									for(int j = 0; j < buffer.size(); ++j) {
+										if(buffer[j][1] == host_ip){
+											send(clienlist[i][9], buffer[j][2], strlen(buffer[j][2]), 0);
+											buffer.erase(buffer.begin()+ j);
+										}
+									}
 									break;
 								}
 							}
