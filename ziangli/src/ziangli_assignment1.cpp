@@ -35,6 +35,7 @@
 #include <signal.h>
 #include <string>
 #include <vector>
+#include <algorithm>
 
 #include "../include/global.h"
 #include "../include/logger.h"
@@ -134,6 +135,26 @@ string **res = new string*[4];
     res[i][1] = list[i][1];
     res[i][2] = list[i][2];
   }
+
+void log_SERVER_LIST(string list[][10]) {
+string command = "LIST";
+cse4589_print_and_log("[%s:SUCCESS]\n", command);
+string **res = new string*[4];
+  for (int i = 0; i < 4; ++i) {
+    res[i] = new string[3];
+    res[i][0] = list[i][0];
+    res[i][1] = list[i][1];
+    res[i][2] = list[i][2];
+  }
+
+
+  sort(res, res + 4, cmp);
+for(int i = 0; i < 4; ++i){
+if(res[i][0] == "") break;
+cse4589_print_and_log("%-5d%-35s%-20s%-8d\n", i, res[i][0], res[i][1], res[i][2]);
+}
+cse4589_print_and_log("[%s:END]\n", command);
+}
 
 
   sort(res, res + 4, cmp);
@@ -376,7 +397,7 @@ int server_process(string myPORT) {
 					break;
 				}
 				case 1:{
-					log_LIST(ClientList);
+					log_SERVER_LIST(ClientList);
 					break;
 				}
 				case 2:{
@@ -443,7 +464,7 @@ int server_process(string myPORT) {
 										for(int m = 4; m < msg_p.size(); m++){
 											msg = msg +" "+ msg_p[m];
 										}
-										log_EVENT(msg_p[1], msg, msg_p[2]);
+										log_EVENTS(msg_p[1], msg, msg_p[2]);
 									}
 									else{
 										temp_buffer[0] = msg_p[1];
@@ -567,7 +588,7 @@ int server_process(string myPORT) {
 										for(int n = 3; n < msg_p.size(); n++){
 											msg = msg +" "+ msg_p[n];
 										}
-				        				log_EVENT(msg_p[1],msg,ClientList[i][1]);
+				        				log_EVENTS(msg_p[1],msg,ClientList[i][1]);
 				        			}else{
 				        				temp_buffer[0] = msg_p[1];
 										temp_buffer[1] = ClientList[i][1];
