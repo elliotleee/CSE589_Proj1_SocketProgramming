@@ -173,7 +173,23 @@ void log_EVENT(string from_ip, string msg, string to_ip) {
 
 bool valid_ip(string ip_test) {
 	int dot_num = 0;
-	for(int i = 0; i < )
+	for(int i = 0; i < ip_test.length(); ++i){
+		if(ip_test[i] == '.') {
+			dot_num++;
+		}
+	}
+	if(dot_num != 3) return false;
+	vector<string> ip_parts;
+	split_msg(ip_test,".", ip_parts);
+	for(int i = 0; i < 4; ++i){
+		for(int j = 0; j < ip_parts[i].length(); ++j){
+			if(ip_parts[i][j] > '9' || ip_parts[i][j] < '0') return false;
+		}
+	}
+	for(int i = 0; i < 4; ++i){
+		if(stoi(ip_parts[i]) > 255) return false;
+	}
+	return true;
 }
 
 int main(int myPORT) {
@@ -359,8 +375,8 @@ int main(int myPORT) {
 								if (Clientlist[i][2] == msg_p[1]){
 									if(Clientlist[i][5] == 1){
 										send(Clientlist[i][9], msg, strlen(msg), 0) == strlen(msg);
-										msg = "";
-										for(int i = 2; i < msg_p.size(); ++i){
+										msg = msg_p[3];
+										for(int i = 4; i < msg_p.size(); ++i){
 											msg = msg +" "+ msg_p[i];
 										}
 										log_EVENT(msg_p[1], string msg, msg_p[2]);
@@ -368,8 +384,8 @@ int main(int myPORT) {
 									else{
 										temp_buffer[0] = msg_p[1];
 										temp_buffer[1] = msg_p[2];
-										msg = "";
-										for(int i = 2; i < msg_p.size(); ++i){
+										msg = msg_p[3];
+										for(int i = 4; i < msg_p.size(); ++i){
 											msg = msg +" "+ msg_p[i];
 										}
 										temp_buffer[2] = msg;
@@ -432,13 +448,30 @@ int main(int myPORT) {
 
 				        //unblock ip
 				        case "3":{
-
+							string from_ip = msg_p[1];
+							string to_ip = msg_p[2];
+							for(int i = 0; i < 4; ++i) {
+								if(clienlist[i][1] == from_ip){
+									for(int j = 6; j < 9; ++j) {
+										if(clientlist[i][j] == to_ip){
+											clientlist[i][j] = "";
+											break;
+										}
+									}
+								}
+							}
 				            break;
 				        }
 
 				        //log out
 				        case "4":{
-
+							string ip_addr = msg_p[1];
+							for(int i = 0; i < 4; ++i) {
+								if(clientlist[i][1] == ip_addr){
+									clientlist[i][5] = "0";
+									break;
+								}
+							}
 				            break;
 				        }
 
@@ -449,7 +482,18 @@ int main(int myPORT) {
 				        }      
 				        //broadcast
 				        case "6":{
+				        	for(int i = 0 ; i<4 ;i++){
+				        		if(Clientlist[i][1] != ""){
+				        			if(Clientlist[i][1] == "1"){
+				        				tempsockfd = stoi(Clientlist[i][9]);
+				        				send(tempsockfd, msg, strlen(msg), 0);
+				        			}else{
+				        				//write into buffer
+				        			}
 
+
+                           		}
+				        	}
 				            break;
 				        } 
 
