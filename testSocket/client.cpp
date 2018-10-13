@@ -385,8 +385,8 @@ int main(string MYPORT)
         //message
         case "0":{
           
-          msg = "";
-          for(int i = 2; i < msg_p.size(); ++i){
+          msg = msg_p[3];
+          for(int i = 4; i < msg_p.size(); ++i){
             msg = msg +" "+ msg_p[i];
           }
           log_EVENT(msg_p[1], string msg);
@@ -405,7 +405,16 @@ int main(string MYPORT)
           }
 
           break;
-        }        
+        } 
+
+        case "6":{
+          msg = msg_p[2];
+          for(int i = 3; i < msg_p.size(); ++i){
+            msg = msg +" "+ msg_p[i];
+          }
+          log_EVENT(msg_p[1], string msg);
+          cout<<msg_p[1]<<" "<<msg<<endl;
+        }       
       }
         //handleClientEvents(msg);
       }
