@@ -191,6 +191,9 @@ int main(int myPORT) {
     char s[INET6_ADDRSTRLEN]={""};
 	int yes=1; // 供底下的 setsockopt() 设置 SO_REUSEADDR
 	int i,j, jc,rv;
+
+	vector<vector<string>> buffer;
+    vector<string> temp_buffer(3);
     
 
 	struct addrinfo hints, *ai, *p;
