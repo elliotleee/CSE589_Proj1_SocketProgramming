@@ -454,7 +454,21 @@ int main(int myPORT) {
 
 				        //refresh
 				        case "7":{
-				            break
+				            msg="1";
+				        	int tempsockfd;
+				        	for(int i = 0 ; i<4 ;i++){
+				        		if(Clientlist[i][1] != ""){
+				        			if(msg_p[1] == Clientlist[i][1]){
+				        				tempsockfd = stoi(Clientlist[i][9]);
+				        			}
+				        			for (int j =0; j < 3 ;j++){
+                                  		  msg= msg + " " + Clientlist[i][j];
+
+                            		}
+                           		}
+				        	}
+				        	send(tempsockfd, msg, strlen(msg), 0);
+				            break;
 				        }
 
 
