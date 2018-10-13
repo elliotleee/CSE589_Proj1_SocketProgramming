@@ -381,6 +381,7 @@ int main(int myPORT) {
 									cse4589_print_and_log("[%s:ERROR]\n", msg_p[0]);
 								}
 							}
+							break;
 						}
 				        // if(send(sockfd, msg, strlen(msg), 0) == strlen(msg))
             // 				printf("Done!\n");    
