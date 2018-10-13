@@ -310,7 +310,7 @@ int server_process(string myPORT) {
     vector<string> msg_p;
     
     struct sockaddr_in FT;
-    int FTlen = sizeof(FT);
+    socklen_t FTlen = sizeof(FT);
 
     char charmsg[50000];
 
@@ -550,11 +550,11 @@ int server_process(string myPORT) {
 												for(int j = 0; j < 4; ++j){
 													stringstream sout;
 														getpeername(masterlist[j],(struct sockaddr*)&FT,&FTlen);
-														string FTD = inet_ntop(FT.sin_addr);
+														string FTD = inet_ntoa(FT.sin_addr);
 														for(int m = 0; m< 4; m++){
-															if(Clientlist[m][1] == FTD){
+															if(ClientList[m][1] == FTD){
 																sout << masterlist[j];
-																Clientlist[m][9] = sout.str();
+																ClientList[m][9] = sout.str();
 															}
 														}
 
@@ -857,7 +857,7 @@ int client_process(string MYPORT)
 		    	 FD_SET(sockfd,&readfds);
 		    	FD_SET(fileno(stdin), &readfds);
 		    	select(fdmax+1,&readfds,NULL,NULL,NULL);
-		    	if (FD_ISSET(fileno(stdin), &readfds){
+		    	if (FD_ISSET(fileno(stdin), &readfds)){
 				      read(fileno(stdin), charmsg, sizeof charmsg);
 				      msg = charmsg;
 				      fflush(stdin);
@@ -945,7 +945,7 @@ int client_process(string MYPORT)
 									        break;
 								      }
 								      case 8:{
-									        cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0]).c_str();
+									        cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0].c_str());
 									        string temp_num = "6 ";
 									        msg = temp_num + blank + myCLientInfo[1] + (string)blank + msg;
 									        if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
@@ -1048,7 +1048,8 @@ int client_process(string MYPORT)
 				      }
 				    }
 				}
-
+}
+}
 
 
 int main(int argc, char **argv){
