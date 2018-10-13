@@ -46,13 +46,41 @@
 #include <string>
 #include <sstream>
 
+using namespace std;
 
+string initMyAddress(const char* port) {
+  string myIP;
+  // port
+  string myPORT = port;
+  // hostname
+  char hostname[1024];
+  gethostname(hostname, sizeof(hostname) - 1);
+  string myHostname = hostname;
+  // IP
+  char buffer[256];
+  size_t buflen = 256;
+  int sock = socket(AF_INET, SOCK_DGRAM, 0);
+  const char* kGoogleDnsIp = "8.8.8.8";
+  uint16_t kDnsPort = 53;
+  struct sockaddr_in serv;
+  memset(&serv, 0, sizeof(serv));
+  serv.sin_family = AF_INET;
+  serv.sin_addr.s_addr = inet_addr(kGoogleDnsIp);
+  serv.sin_port = htons(kDnsPort);
+  int err = connect(sock, (const sockaddr*)&serv, sizeof(serv));
+  sockaddr_in name;
+  socklen_t namelen = sizeof(name);
+  err = getsockname(sock, (sockaddr*)&name, &namelen);
+  myIP = inet_ntop(AF_INET, &name.sin_addr, buffer, buflen);
+  close(sock);
+  return myIP;
+}
 
 
 // #define MSG_SIZE 256
 // #define MAXDATASIZE 100
 
-using namespace std;
+
 
 
 /**
@@ -293,7 +321,7 @@ int server_process(string myPORT) {
 	string blank = " ";
 
 	int serversocketfd;
-	string myIP;
+	string myIP="";
 
 	int listener; // listening socket descriptor
 
@@ -301,8 +329,7 @@ int server_process(string myPORT) {
 	struct sockaddr_storage remoteaddr; // client address
 	socklen_t addrlen;
 
-	char buf[256]; // 储存 client 数据的缓冲区
-	int nbytes;
+	char buf[65535]; // 储存 client 数据的缓冲区
 
     string ClientList[4][10] = {""};
 
@@ -312,10 +339,10 @@ int server_process(string myPORT) {
     struct sockaddr_in FT;
     socklen_t FTlen = sizeof(FT);
 
-    char charmsg[50000];
+    char charmsg[65535];
 
 	char remoteIP[INET6_ADDRSTRLEN];
-    char s[INET6_ADDRSTRLEN]={""};
+    char s[INET_ADDRSTRLEN]={""};
 	int yes=1; // 供底下的 setsockopt() 设置 SO_REUSEADDR
 	int i,j, jc,rv;
 
@@ -336,25 +363,23 @@ int server_process(string myPORT) {
     
 
 	
-	
+	   // cout << "start SUCCESS";
+    const char* charPORT = (const char*)myPORT.c_str();
 
-
-	if ((rv = getaddrinfo(NULL, (const char*)myPORT.c_str(), &hints, &ai)) != 0) {
+	if ((rv = getaddrinfo(NULL, charPORT, &hints, &ai)) != 0) {
 		//fprintf(stderr, "selectserver: %s\n", gai_strerror(rv));
 		exit(1);
 	}
-
+   // cout << "start SUCCESS";
 	for(p = ai; p != NULL; p = p->ai_next) {
 		listener = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
 		if (listener < 0) {
 		continue;
 		}
-	serversocketfd = listener;
-    inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr), s, sizeof s);
-    myIP = s;
 
 
 
+        // cout << "start SUCCESS";
 		// 避开这个错误信息："address already in use"
 		setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
 
@@ -362,10 +387,14 @@ int server_process(string myPORT) {
 		close(listener);
 		continue;
 		}
+
         //printf("INITICALISE FINISH\n");
 		break;
 	}
-
+			serversocketfd = listener;
+		    inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr), s, sizeof s);
+		    myIP = s;
+   // cout << "start SUCCESS";
 	// 若我们进入这个判断式，则表示我们 bind() 失败
 	if (p == NULL) {
 		//fprintf(stderr, "selectserver: failed to bind\n");
@@ -378,54 +407,63 @@ int server_process(string myPORT) {
 		//perror("listen");
 		exit(3);
 	}
-
+   // cout << "start SUCCESS";
 	// 将 listener 新增到 master set
 	FD_SET(listener, &master);
+	FD_SET(fileno(stdin), &master);
 
 	// 持续追踪最大的 file descriptor
 	fdmax = listener; // 到此为止，就是它了
 
 
-
+   // cout << "start SUCCESS";
 
 	// 主要循环
 	while(1){
-		read_fds = master; // 复制 master
-        FD_SET(fileno(stdin), &read_fds);
+		memset(charmsg,0,sizeof charmsg);
+		msg = "";
+		memcpy(&read_fds,&master, sizeof (master)); // 复制 master
 
 		if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1) {
 			//perror("select");
 			exit(4);
 		}
-   		
-   		int mark;
-	      if(msg_p[0] == "LIST"){
-	          mark =1;
-	      }
-	      if(msg_p[0] == "STATICS"){
-	          mark =2;
-	      }
-	      if(msg_p[0] == "IP"){
-	          mark =3;
-	      }
-	      if(msg_p[0] == "AUTHOR"){
-	          mark =4;
-	      }
-	      if(msg_p[0] == "PORT"){
-	          mark =5;
-	      }
-	      if(msg_p[0] == "BLOCKED"){
-	      	mark = 6;
-	      }
+
 
 		// 在现存的连接中寻找需要读取的数据
 		if (FD_ISSET(fileno(stdin), &read_fds)) {
    		    read(fileno(stdin), charmsg, sizeof charmsg);
    		    msg = charmsg;
+   		    // cout << msg << endl;
   		    fflush(stdin);
-  		    split_msg(msg," ", msg_p);
- 	     	switch (str_to_int(msg_p[0])){
+  		    msg = msg.substr(0, msg.length() - 1);
+  		    split_msg(msg," ", msg_p); 
+
+  		    // cout << msg << endl;
+
+	   		int mark;
+		      if(msg_p[0] == "LIST"){
+		          mark =1;
+		      }
+		      if(msg_p[0] == "STATICS"){
+		          mark =2;
+		      }
+		      if(msg_p[0] == "IP"){
+		          mark =3;
+		      }
+		      if(msg_p[0] == "AUTHOR"){
+		          mark =4;
+		      }
+		      if(msg_p[0] == "PORT"){
+		          mark =5;
+		      }
+		      if(msg_p[0] == "BLOCKED"){
+		      	mark = 6;
+		      }
+
+ 	     	switch (mark){
     		  	case 3:{
+    		  		myIP = initMyAddress(charPORT);
       			    log_IP(myIP);
       			    break;
 				}
@@ -455,7 +493,7 @@ int server_process(string myPORT) {
     	}else if (FD_ISSET(serversocketfd, &read_fds)) {
     		newfd= accept(serversocketfd,(struct sockaddr *)&remoteaddr,&addrlen);
     		for(int i = 0; i<4; i++){
-    			if (masterlist[i] ==0){
+    			if (masterlist[i] == 0 ){
     				masterlist[i] = newfd;
     				break;
     			}
@@ -464,26 +502,9 @@ int server_process(string myPORT) {
     		if (newfd > fdmax){
     			fdmax = newfd;
     		}
-    	}
-
-			// else {
-			// // 处理来自 client 的数据
-			// if ((nbytes = recv(i, buf, sizeof buf, 0)) <= 0) {
-			// 	// got error or connection closed by client
-			// 	if (nbytes == 0) {
-			// 	// 关闭连接
-			// 	//printf("selectserver: socket %d hung up\n", i);
-			// 	} else {
-			// 	//perror("recv");
-			// 	}
-			// 	close(i); // bye!
-			// 	FD_CLR(i, &master); // 从 master set 中移除
-
-		else {
+    	}else {
 			    for(int p = 1; p<= fdmax; p++){
 			    	if(FD_ISSET(p,&master)){
-
-			    
 		     			 if(recv(p, charmsg, sizeof charmsg, 0) == 0){
 		     				close(p);  
 		     				FD_CLR(p,&master);       			   
@@ -500,7 +521,7 @@ int server_process(string myPORT) {
 													send(tempsockfd, (const char*)msg.c_str(), msg.length(), 0);
 													msg = msg_p[3];
 													for(int m = 4; m < msg_p.size(); m++){
-														msg = msg +" "+ msg_p[m];
+														msg = msg +blank+ msg_p[m];
 													}
 													log_EVENTS(msg_p[1], msg, msg_p[2]);
 												}
@@ -509,7 +530,7 @@ int server_process(string myPORT) {
 													temp_buffer[1] = msg_p[2];
 													msg = msg_p[3];
 													for(int n = 4; n < msg_p.size(); n++){
-														msg = msg +" "+ msg_p[n];
+														msg = msg +blank+ msg_p[n];
 													}
 													temp_buffer[2] = msg;
 													buffer.push_back(temp_buffer);
@@ -690,8 +711,6 @@ int client_process(string MYPORT)
    char s[INET6_ADDRSTRLEN]={""};
    string blank = " ";
 
-   // vector<string> Msg;
-
    bool login_st = 0; // login state 0 means offline, 1 means online
 
    memset(&hints, 0, sizeof hints); // 确保 struct 为空
@@ -701,11 +720,7 @@ int client_process(string MYPORT)
    string myCLientInfo[3];
 
    string Clientlist[4][3];
-   // for(int i = 0; i < 4; ++i){
-   //   for(int j = 0; j < 3; ++j) {
-   //     Clientlist[i][j] = "";
-   //   }
-   // }
+
 
    string msg="";
    char charmsg[65535];
@@ -723,25 +738,17 @@ int client_process(string MYPORT)
       return 1;
       }
 
-
-   // if ((rv = getaddrinfo(NULL, PORT, &hints, &servinfo)) != 0) { // return not zero value when error happen
-   //      fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv)); // print error with gai_strerror
-   //      return 1;
-   //  }
-
-
     for(p = clientinfo; p != NULL; p = p->ai_next) {
-      if ((sockfd = socket(p->ai_family, p->ai_socktype, 
-          p->ai_protocol)) == -1) {
-          //perror("client: socket"); 
+      if ((sockfd = socket(p->ai_family, p->ai_socktype, p->ai_protocol)) == -1) {
           continue;
         }
       if (bind(sockfd, p->ai_addr, p->ai_addrlen) < 0) {
          close(sockfd);
          continue;
       }
+      break;
     }
-
+    
 
     gethostname(Hostname_char, 40);
     myHostname = Hostname_char;
@@ -753,8 +760,7 @@ int client_process(string MYPORT)
     myCLientInfo[1] = s;
     myCLientInfo[2] = MYPORT;
 
-
-
+   
     
 
 //finish initialize here
@@ -763,6 +769,8 @@ int client_process(string MYPORT)
   int fdmax = sockfd;
   // core loop
   while (1) {
+  	memset(charmsg,0,sizeof charmsg);
+  	msg = "";
    	if(login_st == 0){
    		//offline
     	FD_ZERO(&readfds);
@@ -770,8 +778,11 @@ int client_process(string MYPORT)
     	FD_SET(fileno(stdin), &readfds);
     	select(fdmax+1,&readfds,NULL,NULL,NULL);
     	if (FD_ISSET(fileno(stdin), &readfds)) {
-      		read(fileno(stdin), charmsg, sizeof(msg));
+      		read(fileno(stdin), charmsg, sizeof msg );
       		msg = charmsg;
+
+      		msg = msg.substr(0, msg.length() - 1);
+
       		fflush(stdin);
      		split_msg(msg," ", msg_p);
 
@@ -803,7 +814,7 @@ int client_process(string MYPORT)
 					inet_pton(AF_INET, (const char*)msg_p[1].c_str(), (void*)&my_ip);
 						
 						//need change form of data here
-						if ((rv = getaddrinfo(my_ip, msg_p[2].c_str(), &hints, &clientinfo)) != 0) { // return not zero value when error happen
+						if ((rv = getaddrinfo(msg_p[1].c_str(), msg_p[2].c_str(), &hints, &servinfo)) != 0) { // return not zero value when error happen
 							//fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv)); // print error with gai_strerror
 							cse4589_print_and_log("[%s:ERROR]\n", msg_p[0]);
 							break;
@@ -876,7 +887,9 @@ int client_process(string MYPORT)
 				      read(fileno(stdin), charmsg, sizeof charmsg);
 				      msg = charmsg;
 				      fflush(stdin);
+				      msg = msg.substr(0, msg.length() - 1);
 				      split_msg(msg," ", msg_p);
+
 
 
 						    int mark;
@@ -1033,7 +1046,7 @@ int client_process(string MYPORT)
 										            msg = msg +blank+ msg_p[i];
 										          }
 										          log_EVENT(msg_p[1],msg);
-										          cout<<msg_p[1]<<" "<<msg<<endl;
+										          // cout<<msg_p[1]<<" "<<msg<<endl;
 										          break;
 							          	 }
 							        
@@ -1056,7 +1069,7 @@ int client_process(string MYPORT)
 											            msg = msg +blank+ msg_p[i];
 											          }
 											          log_EVENT(msg_p[1], msg);
-											          cout<<msg_p[1]<<" "<<msg<<endl;
+											          // cout<<msg_p[1]<<" "<<msg<<endl;
 							     		 }       
 							      }
 				        //handleClientEvents(msg);
@@ -1076,9 +1089,11 @@ int main(int argc, char **argv){
 
 	/*Start Here*/
 	if (*argv[1] == 'c') {
-    	client_process(argv[2]);
+		string port = argv[2];
+    	client_process(port);
   	} else if (*argv[1] == 's') {
-    	server_process(argv[2]);
+  		string port = argv[2];
+    	server_process(port);
   	} else {
     	return 1;
   	}
