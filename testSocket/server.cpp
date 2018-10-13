@@ -13,6 +13,9 @@
 #include <signal.h>
 #include <string>
 
+#include "./include/global.h"
+#include "./include/logger.h"
+
 #define PORT "3490"
 
 using namespace std;
@@ -415,7 +418,7 @@ int main(int myPORT) {
 									for(int j = 0; j < buffer.size(); ++j) {
 										if(buffer[j][1] == host_ip){
 											send(clienlist[i][9], buffer[j][2], strlen(buffer[j][2]), 0);
-											buffer.erase(buffer.begin()+ j);
+											buffer.erase(buffer.begin()+ j-1);
 										}
 									}
 									break;
@@ -498,9 +501,14 @@ int main(int myPORT) {
 				        case "6":{
 				        	for(int i = 0 ; i<4 ;i++){
 				        		if(Clientlist[i][1] != ""){
-				        			if(Clientlist[i][1] == "1"){
+				        			if(Clientlist[i][5] == "1"){
 				        				tempsockfd = stoi(Clientlist[i][9]);
 				        				send(tempsockfd, msg, strlen(msg), 0);
+				        				msg = msg_p[2];
+										for(int n = 3; n < msg_p.size(); n++){
+											msg = msg +" "+ msg_p[n];
+										}
+				        				log_EVENT(msg_p[1],msg,Clientlist[i][1])
 				        			}else{
 				        				temp_buffer[0] = msg_p[1];
 										temp_buffer[1] = Clientlist[i][1];
