@@ -44,17 +44,15 @@
 
 #include <algorithm>
 #include <string>
+#include <sstream>
 
 
 
 
-#define MSG_SIZE 256
-#define MAXDATASIZE 100
+// #define MSG_SIZE 256
+// #define MAXDATASIZE 100
 
 using namespace std;
-
-
-
 
 
 /**
@@ -95,8 +93,7 @@ void *get_in_addr(struct sockaddr *sa) {
 }
 
 // use like split_msg(msg," ", result);
-void split_msg(string& src, const string& separator, vector<string>& dest)
-{
+void split_msg(string& src, const string& separator, vector<string>& dest){
     string str = src;
     string substring;
     string::size_type start = 0, index;
@@ -120,26 +117,26 @@ void split_msg(string& src, const string& separator, vector<string>& dest)
 }
 
 void log_IP(string ip){
-const char* command = "IP";
-cse4589_print_and_log("[%s:SUCCESS]\n", command);
-cse4589_print_and_log("IP:%s\n", ip.c_str());
-cse4589_print_and_log("[%s:END]\n", command);
+	const char* command = "IP";
+	cse4589_print_and_log("[%s:SUCCESS]\n", command);
+	cse4589_print_and_log("IP:%s\n", ip.c_str());
+	cse4589_print_and_log("[%s:END]\n", command);
 }
 
 void log_AUTHOR() {
-const char* command = "AUTHOR";
-cse4589_print_and_log("[%s:SUCCESS]\n", command);
-string ubit_name_1 = "lchen76";
-string ubit_name_2 = "ziangli";
-cse4589_print_and_log("I, %s, %s, have read and understood the course academic integrity policy.\n", ubit_name_1.c_str(), ubit_name_2.c_str());
-cse4589_print_and_log("[%s:END]\n", command);
+	const char* command = "AUTHOR";
+	cse4589_print_and_log("[%s:SUCCESS]\n", command);
+	//string ubit_name_1 = "lchen76";
+	string ubit_name_2 = "ziangli";
+	cse4589_print_and_log("I, %s, have read and understood the course academic integrity policy.\n",  ubit_name_2.c_str());
+	cse4589_print_and_log("[%s:END]\n", command);
 }
 
 void log_PORT(int port) {
-const char* command = "PORT";
-cse4589_print_and_log("[%s:SUCCESS]\n", command);
-cse4589_print_and_log("PORT:%d\n", port);
-cse4589_print_and_log("[%s:END]\n", command);
+	const char* command = "PORT";
+	cse4589_print_and_log("[%s:SUCCESS]\n", command);
+	cse4589_print_and_log("PORT:%d\n", port);
+	cse4589_print_and_log("[%s:END]\n", command);
 }
 
 bool cmp(string p[], string q[]) {
@@ -161,50 +158,49 @@ bool cmp(string p[], string q[]) {
 }
 
 void log_LIST(string list[][3]) {
-const char* command = "LIST";
-cse4589_print_and_log("[%s:SUCCESS]\n", command);
-string **res = new string*[4];
-  for (int i = 0; i < 4; ++i) {
-    res[i] = new string[3];
-    res[i][0] = list[i][0];
-    res[i][1] = list[i][1];
-    res[i][2] = list[i][2];
-  }
+	const char* command = "LIST";
+	cse4589_print_and_log("[%s:SUCCESS]\n", command);
+	string **res = new string*[4];
+	  for (int i = 0; i < 4; ++i) {
+	    res[i] = new string[3];
+	    res[i][0] = list[i][0];
+	    res[i][1] = list[i][1];
+	    res[i][2] = list[i][2];
+	  }
+
+		  sort(res, res + 4, cmp);
+		for(int i = 0; i < 4; ++i){
+		  if(res[i][0] == "") break;
+		  cse4589_print_and_log("%-5d%-35s%-20s%-8d\n", i, res[i][0].c_str(), res[i][1].c_str(), res[i][2].c_str());
+		}
+		cse4589_print_and_log("[%s:END]\n", command);
 }
 
 void log_SERVER_LIST(string list[][10]) {
-const char* command = "LIST";
-cse4589_print_and_log("[%s:SUCCESS]\n", command);
-string **res = new string*[4];
-  for (int i = 0; i < 4; ++i) {
-    res[i] = new string[3];
-    res[i][0] = list[i][0];
-    res[i][1] = list[i][1];
-    res[i][2] = list[i][2];
-  }
+		const char* command = "LIST";
+		cse4589_print_and_log("[%s:SUCCESS]\n", command);
+		string **res = new string*[4];
+		  for (int i = 0; i < 4; ++i) {
+		    res[i] = new string[3];
+		    res[i][0] = list[i][0];
+		    res[i][1] = list[i][1];
+		    res[i][2] = list[i][2];
+		  }
 
 
-  sort(res, res + 4, cmp);
-for(int i = 0; i < 4; ++i){
-	if(res[i][0] == "") break;
-	cse4589_print_and_log("%-5d%-35s%-20s%-8d\n", i, res[i][0], res[i][1], res[i][2]);
-	}
-cse4589_print_and_log("[%s:END]\n", command);
-
-
-  sort(res, res + 4, cmp);
-for(int i = 0; i < 4; ++i){
-  if(res[i][0] == "") break;
-  cse4589_print_and_log("%-5d%-35s%-20s%-8d\n", i, res[i][0].c_str(), res[i][1].c_str(), res[i][2].c_str());
-}
-cse4589_print_and_log("[%s:END]\n", command);
+		  sort(res, res + 4, cmp);
+		for(int i = 0; i < 4; ++i){
+		  if(res[i][0] == "") break;
+		  cse4589_print_and_log("%-5d%-35s%-20s%-8d\n", i, res[i][0].c_str(), res[i][1].c_str(), res[i][2].c_str());
+		}
+		cse4589_print_and_log("[%s:END]\n", command);
 }
 
 void log_EVENT(string client_ip, string msg) {
-const char* command = "EVENT";
-cse4589_print_and_log("[%s:SUCCESS]\n", command);
-cse4589_print_and_log("msg from:%s\n[msg]:%s\n", client_ip.c_str(), msg.c_str());
-cse4589_print_and_log("[%s:END]\n", command);
+	const char* command = "EVENT";
+	cse4589_print_and_log("[%s:SUCCESS]\n", command);
+	cse4589_print_and_log("msg from:%s\n[msg]:%s\n", client_ip.c_str(), msg.c_str());
+	cse4589_print_and_log("[%s:END]\n", command);
 }
 
 void log_STATICS(string list[][10]) {
@@ -220,7 +216,7 @@ void log_STATICS(string list[][10]) {
     sort(res, res + 4, cmp);
     for(int i = 0; i < 4; ++i) {
         if(res[i][0] == "") break;
-        cse4589_print_and_log("%-5d%-35s%-8d%-8d%-8s\n", i, res[i][0], res[i][3], res[i][4], res[i][5]);
+        cse4589_print_and_log("%-5d%-35s%-8d%-8d%-8s\n", i, res[i][0].c_str(), res[i][3].c_str(), res[i][4].c_str(), res[i][5].c_str());
     }
     cse4589_print_and_log("[%s:END]\n", command);
 }
@@ -256,7 +252,7 @@ void log_BLOCKED(string list[][10], string cli_ip) {
     sort(res, res + 3, cmp);
     for(int i = 0; i < 3; ++i){
         if(res[i][0] == "") break;
-        cse4589_print_and_log("%-5d%-35s%-20s%-8d\n", i, res[i][0], res[i][1], res[i][2]);
+        cse4589_print_and_log("%-5d%-35s%-20s%-8d\n", i, res[i][0].c_str(), res[i][1].c_str(), res[i][2].c_str());
     }
     cse4589_print_and_log("[%s:END]\n", command);
 }
@@ -291,13 +287,16 @@ bool valid_ip(string ip_test) {
 
 int server_process(string myPORT) {
 	fd_set master; // master file descriptor 表
+	int masterlist[4]={0};
 	fd_set read_fds; // 给 select() 用的暂时 file descriptor 表
 	int fdmax; // 最大的 file descriptor 数目
 	string blank = " ";
 
 	int serversocketfd;
+	string myIP;
 
 	int listener; // listening socket descriptor
+
 	int newfd; // 新接受的 accept() socket descriptor
 	struct sockaddr_storage remoteaddr; // client address
 	socklen_t addrlen;
@@ -306,8 +305,14 @@ int server_process(string myPORT) {
 	int nbytes;
 
     string ClientList[4][10] = {""};
+
     string msg;
-   char charmsg[50000];
+    vector<string> msg_p;
+    
+    struct sockaddr_in FT;
+    int FTlen = sizeof(FT);
+
+    char charmsg[50000];
 
 	char remoteIP[INET6_ADDRSTRLEN];
     char s[INET6_ADDRSTRLEN]={""};
@@ -316,7 +321,7 @@ int server_process(string myPORT) {
 
 	vector< vector<string> > buffer;
     vector<string> temp_buffer(3);
-    vector<string> msg_p;
+
 
 	struct addrinfo hints, *ai, *p;
 
@@ -328,8 +333,9 @@ int server_process(string myPORT) {
 	hints.ai_family = AF_UNSPEC;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_flags = AI_PASSIVE;
+    
 
-	string myIP;
+	
 	
 
 
@@ -383,13 +389,13 @@ int server_process(string myPORT) {
 
 
 	// 主要循环
-	for( ; ; ) {
+	while(1){
 		read_fds = master; // 复制 master
         FD_SET(fileno(stdin), &read_fds);
 
 		if (select(fdmax+1, &read_fds, NULL, NULL, NULL) == -1) {
-		//perror("select");
-		exit(4);
+			//perror("select");
+			exit(4);
 		}
    		
    		int mark;
@@ -446,243 +452,242 @@ int server_process(string myPORT) {
 				}
     		}
       //handleCommands(msg, 1);
-    	}else{
-			for(i = 0; i < fdmax; i++) {
-				if (FD_ISSET(i, &read_fds)) { // 我们找到一个！！
-				if (i == listener) {
-				// handle new connections
-				addrlen = sizeof remoteaddr;
-				newfd = accept(listener,
-				(struct sockaddr *)&remoteaddr,
-				&addrlen);
+    	}else if (FD_ISSET(serversocketfd, &read_fds)) {
+    		newfd= accept(serversocketfd,(struct sockaddr *)&remoteaddr,&addrlen);
+    		for(int i = 0; i<4; i++){
+    			if (masterlist[i] ==0){
+    				masterlist[i] = newfd;
+    				break;
+    			}
+    		}
+    		FD_SET(newfd, &master);
+    		if (newfd > fdmax){
+    			fdmax = newfd;
+    		}
+    	}
 
-				if (newfd == -1) {
-					//perror("accept");
-				}else{
-					FD_SET(newfd, &master); // 新增到 master set
-					if (newfd > fdmax) { // 持续追踪最大的 fd
-						fdmax = newfd;
+			// else {
+			// // 处理来自 client 的数据
+			// if ((nbytes = recv(i, buf, sizeof buf, 0)) <= 0) {
+			// 	// got error or connection closed by client
+			// 	if (nbytes == 0) {
+			// 	// 关闭连接
+			// 	//printf("selectserver: socket %d hung up\n", i);
+			// 	} else {
+			// 	//perror("recv");
+			// 	}
+			// 	close(i); // bye!
+			// 	FD_CLR(i, &master); // 从 master set 中移除
+
+		else {
+			    for(int p = 1; p<= fdmax; p++){
+			    	if(FD_ISSET(p,&master)){
+
+			    
+		     			 if(recv(p, charmsg, sizeof charmsg, 0) == 0){
+		     				close(p);  
+		     				FD_CLR(p,&master);       			   
+		    			   }else{
+		    			  	  	msg = charmsg;
+		     			      	split_msg(msg," ", msg_p);
+		    				  	switch (str_to_int(msg_p[0])){
+							        //message
+							        case 0:{
+										for (int i = 0; i <=3 ;i ++){
+											if (ClientList[i][2] == msg_p[1]){
+												if(ClientList[i][5] == "1"){
+													int tempsockfd = str_to_int(ClientList[i][9]);
+													send(tempsockfd, (const char*)msg.c_str(), msg.length(), 0);
+													msg = msg_p[3];
+													for(int m = 4; m < msg_p.size(); m++){
+														msg = msg +" "+ msg_p[m];
+													}
+													log_EVENTS(msg_p[1], msg, msg_p[2]);
+												}
+												else{
+													temp_buffer[0] = msg_p[1];
+													temp_buffer[1] = msg_p[2];
+													msg = msg_p[3];
+													for(int n = 4; n < msg_p.size(); n++){
+														msg = msg +" "+ msg_p[n];
+													}
+													temp_buffer[2] = msg;
+													buffer.push_back(temp_buffer);
+												}
+
+											}else{
+												cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0]);
+												cse4589_print_and_log("[%s:ERROR]\n", msg_p[0]);
+											}
+										}
+										break;
+									}
+
+							        //hostname
+							        case 1:{
+										string host = msg_p[1];
+										string host_ip = msg_p[2];
+										string port = msg_p[3];
+										for(int i = 0; i < 4; ++i) {
+											if(ClientList[i][1] == host_ip) {
+												ClientList[i][5] = "1";
+												for(int j = 0; j < buffer.size(); ++j) {
+													if(buffer[j][1] == host_ip){
+														send(str_to_int(ClientList[i][9]), (const char*)buffer[j][2].c_str(), buffer[j][2].length(), 0);
+														buffer.erase(buffer.begin()+ j-1);
+													}
+												}
+												break;
+											}
+										}
+
+										for(int i = 0; i < 4; ++i){
+											if(ClientList[i][0] == ""){
+												ClientList[i][0] = host;
+												ClientList[i][1] = host_ip;
+												ClientList[i][2] = port;
+												ClientList[i][5] = "1";
+												for(int j = 0; j < 4; ++j){
+													stringstream sout;
+														getpeername(masterlist[j],(struct sockaddr*)&FT,&FTlen);
+														string FTD = inet_ntop(FT.sin_addr);
+														for(int m = 0; m< 4; m++){
+															if(Clientlist[m][1] == FTD){
+																sout << masterlist[j];
+																Clientlist[m][9] = sout.str();
+															}
+														}
+
+												}
+												break;
+											}
+										}
+							            break;
+							        }        
+
+							        //block ip
+							        case 2:{
+										string from_ip = msg_p[1];
+										string to_ip = msg_p[2];
+										for(int i = 0; i < 4; ++i) {
+											if(ClientList[i][1] == from_ip){
+												for(int j = 6; j < 9; ++j) {
+													if(ClientList[i][j] == ""){
+														ClientList[i][j] = to_ip;
+														break;
+													}
+												}
+											}
+										}
+							            break;
+							        }
+
+							        //unblock ip
+							        case 3:{
+										string from_ip = msg_p[1];
+										string to_ip = msg_p[2];
+										for(int i = 0; i < 4; ++i) {
+											if(ClientList[i][1] == from_ip){
+												for(int j = 6; j < 9; ++j) {
+													if(ClientList[i][j] == to_ip){
+														ClientList[i][j] = "";
+														break;
+													}
+												}
+											}
+										}
+							            break;
+							        }
+
+							        //log out
+							        case 4:{
+										string ip_addr = msg_p[1];
+										for(int i = 0; i < 4; ++i) {
+											if(ClientList[i][1] == ip_addr){
+												ClientList[i][5] = "0";
+												break;
+											}
+										}
+							            break;
+							        }
+
+							        //exit
+							        case 5:{
+										string ip_addr = msg_p[1];
+										for(int i = 0; i < 4; ++i){
+											if(ClientList[i][1] == ip_addr) {
+												for(int j = 0; j < 10; ++j) {
+													ClientList[i][j] = "";
+												}
+												break;
+											}
+										}
+							            break;
+							        }      
+							        //broadcast
+							        case 6:{
+							        	for(int i = 0 ; i<4 ;i++){
+							        		if(ClientList[i][1] != ""){
+							        			if(ClientList[i][5] == "1"){
+							        				int tempsockfd = str_to_int(ClientList[i][9]);
+							        				send(tempsockfd, (const char*)msg.c_str(), msg.length(), 0);
+							        				msg = msg_p[2];
+													for(int n = 3; n < msg_p.size(); n++){
+														msg = msg +" "+ msg_p[n];
+													}
+							        				log_EVENTS(msg_p[1],msg,ClientList[i][1]);
+							        			}else{
+							        				temp_buffer[0] = msg_p[1];
+													temp_buffer[1] = ClientList[i][1];
+													msg = msg_p[2];
+													for(int n = 3; n < msg_p.size(); n++){
+														msg = msg +" "+ msg_p[n];
+													}
+													temp_buffer[2] = msg;
+													buffer.push_back(temp_buffer);
+							        			}
+			                           		}
+							        	}
+							            break;
+							        } 
+
+							        //refresh
+							        case 7:{
+							            msg="1";
+							        	int tempsockfd;
+							        	for(int i = 0 ; i<4 ;i++){
+							        		if(ClientList[i][1] != ""){
+							        			if(msg_p[1] == ClientList[i][1]){
+							        				tempsockfd = str_to_int(ClientList[i][9]);
+							        			}
+							        			for (int j =0; j < 3 ;j++){
+			                                  		  msg= msg + blank + ClientList[i][j];
+
+			                            		}
+			                           		}
+							        	}
+							        	send(tempsockfd, (const char*)msg.c_str(), msg.length(), 0);
+							            break;
+							        }
+								}
+							}							
 					}
 				}
-
-
-			}else {
-			// 处理来自 client 的数据
-			if ((nbytes = recv(i, buf, sizeof buf, 0)) <= 0) {
-				// got error or connection closed by client
-				if (nbytes == 0) {
-				// 关闭连接
-				//printf("selectserver: socket %d hung up\n", i);
-				} else {
-				//perror("recv");
-				}
-				close(i); // bye!
-				FD_CLR(i, &master); // 从 master set 中移除
-
-			}else if (FD_ISSET(serversocketfd, &read_fds)) {
-     			 if(recv(serversocketfd, charmsg, sizeof charmsg, 0) == 0){
-     				break;   
-        			   
-    			  }else{
-    			  	  msg = charmsg;
-     			       split_msg(msg," ", msg_p);
-    				  switch (str_to_int(msg_p[0])){
-				        //message
-				        case 0:{
-
-							for (int i = 0; i <=3 ;i ++){
-								if (ClientList[i][2] == msg_p[1]){
-									if(ClientList[i][5] == "1"){
-										int tempsockfd = str_to_int(ClientList[i][9]);
-										send(tempsockfd, (const char*)msg.c_str(), msg.length(), 0);
-										msg = msg_p[3];
-										for(int m = 4; m < msg_p.size(); m++){
-											msg = msg +" "+ msg_p[m];
-										}
-										log_EVENTS(msg_p[1], msg, msg_p[2]);
-									}
-									else{
-										temp_buffer[0] = msg_p[1];
-										temp_buffer[1] = msg_p[2];
-										msg = msg_p[3];
-										for(int n = 4; n < msg_p.size(); n++){
-											msg = msg +" "+ msg_p[n];
-										}
-										temp_buffer[2] = msg;
-										buffer.push_back(temp_buffer);
-									}
-
-								}else{
-									cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0]);
-									cse4589_print_and_log("[%s:ERROR]\n", msg_p[0]);
-								}
-							}
-							break;
-						}
-				        // if(send(sockfd, msg, strlen(msg), 0) == strlen(msg))
-            // 				printf("Done!\n");    
-				        //     break;
-				        // }
-
-				        //hostname
-				        case 1:{
-							string host = msg_p[1];
-							string host_ip = msg_p[2];
-							string port = msg_p[3];
-							for(int i = 0; i < 4; ++i) {
-								if(ClientList[i][1] == host_ip) {
-									ClientList[i][5] = 1;
-									for(int j = 0; j < buffer.size(); ++j) {
-										if(buffer[j][1] == host_ip){
-											send(str_to_int(ClientList[i][9]), (const char*)buffer[j][2].c_str(), buffer[j][2].length(), 0);
-											buffer.erase(buffer.begin()+ j-1);
-										}
-									}
-									break;
-								}
-							}
-							for(int i = 0; i < 4; ++i){
-								if(ClientList[i][0] == ""){
-									ClientList[i][0] = host;
-									ClientList[i][1] = host_ip;
-									ClientList[i][2] = port;
-									ClientList[i][5] = "1";
-									break;
-								}
-							}
-				            break;
-				        }        
-
-				        //block ip
-				        case 2:{
-							string from_ip = msg_p[1];
-							string to_ip = msg_p[2];
-							for(int i = 0; i < 4; ++i) {
-								if(ClientList[i][1] == from_ip){
-									for(int j = 6; j < 9; ++j) {
-										if(ClientList[i][j] == ""){
-											ClientList[i][j] = to_ip;
-											break;
-										}
-									}
-								}
-							}
-				            break;
-				        }
-
-				        //unblock ip
-				        case 3:{
-							string from_ip = msg_p[1];
-							string to_ip = msg_p[2];
-							for(int i = 0; i < 4; ++i) {
-								if(ClientList[i][1] == from_ip){
-									for(int j = 6; j < 9; ++j) {
-										if(ClientList[i][j] == to_ip){
-											ClientList[i][j] = "";
-											break;
-										}
-									}
-								}
-							}
-				            break;
-				        }
-
-				        //log out
-				        case 4:{
-							string ip_addr = msg_p[1];
-							for(int i = 0; i < 4; ++i) {
-								if(ClientList[i][1] == ip_addr){
-									ClientList[i][5] = "0";
-									break;
-								}
-							}
-				            break;
-				        }
-
-				        //exit
-				        case 5:{
-							string ip_addr = msg_p[1];
-							for(int i = 0; i < 4; ++i){
-								if(ClientList[i][1] == ip_addr) {
-									for(int j = 0; j < 10; ++j) {
-										ClientList[i][j] = "";
-									}
-									break;
-								}
-							}
-				            break;
-				        }      
-				        //broadcast
-				        case 6:{
-				        	for(int i = 0 ; i<4 ;i++){
-				        		if(ClientList[i][1] != ""){
-				        			if(ClientList[i][5] == "1"){
-				        				int tempsockfd = str_to_int(ClientList[i][9]);
-				        				send(tempsockfd, (const char*)msg.c_str(), msg.length(), 0);
-				        				msg = msg_p[2];
-										for(int n = 3; n < msg_p.size(); n++){
-											msg = msg +" "+ msg_p[n];
-										}
-				        				log_EVENTS(msg_p[1],msg,ClientList[i][1]);
-				        			}else{
-				        				temp_buffer[0] = msg_p[1];
-										temp_buffer[1] = ClientList[i][1];
-										msg = msg_p[2];
-										for(int n = 3; n < msg_p.size(); n++){
-											msg = msg +" "+ msg_p[n];
-										}
-										temp_buffer[2] = msg;
-										buffer.push_back(temp_buffer);
-				        			}
-                           		}
-				        	}
-				            break;
-				        } 
-
-				        //refresh
-				        case 7:{
-				            msg="1";
-				        	int tempsockfd;
-				        	for(int i = 0 ; i<4 ;i++){
-				        		if(ClientList[i][1] != ""){
-				        			if(msg_p[1] == ClientList[i][1]){
-				        				tempsockfd = str_to_int(ClientList[i][9]);
-				        			}
-				        			for (int j =0; j < 3 ;j++){
-                                  		  msg= msg + blank + ClientList[i][j];
-
-                            		}
-                           		}
-				        	}
-				        	send(tempsockfd, (const char*)msg.c_str(), msg.length(), 0);
-				            break;
-				        }
-
-
-				      }
-				      }
-				        //handleClientEvents(msg);
-				      }
-				    }
-			} // END handle data from client
-		} // END got new incoming connection
-		} // END looping through file descriptors
+		} 
 	}
-	} // END for( ; ; )--and you thought it would never end!
+}
 
 int client_process(string MYPORT)
 {
 
    int sockfd;//numbytes;
-   //char buf[MAXDATASIZE];
-    // close(sockfd);
-    // return 0;
+
    struct addrinfo hints, *servinfo,*clientinfo, *p, *p2;
    int rv;
    char s[INET6_ADDRSTRLEN]={""};
    string blank = " ";
 
-   vector<string> Msg;
+   // vector<string> Msg;
 
    bool login_st = 0; // login state 0 means offline, 1 means online
 
@@ -693,20 +698,18 @@ int client_process(string MYPORT)
    string myCLientInfo[3];
 
    string Clientlist[4][3];
-   for(int i = 0; i < 4; ++i){
-     for(int j = 0; j < 3; ++j) {
-       Clientlist[i][j] = "";
-     }
-   }
+   // for(int i = 0; i < 4; ++i){
+   //   for(int j = 0; j < 3; ++j) {
+   //     Clientlist[i][j] = "";
+   //   }
+   // }
 
    string msg="";
-   char charmsg[50000];
+   char charmsg[65535];
    string myServerInfo[2]={"", ""};
    string myHostname;
    char Hostname_char[40];
    vector<string> BlockList;
-
-
 
    vector<string> msg_p;
    
@@ -735,6 +738,8 @@ int client_process(string MYPORT)
          continue;
       }
     }
+
+
     gethostname(Hostname_char, 40);
     myHostname = Hostname_char;
 
@@ -746,7 +751,6 @@ int client_process(string MYPORT)
     myCLientInfo[2] = MYPORT;
 
 
-    cout << "myCLientInfo is" << myCLientInfo << endl;
 
     
 
@@ -756,37 +760,40 @@ int client_process(string MYPORT)
   int fdmax = sockfd;
   // core loop
   while (1) {
-   if(login_st == 0){
-    FD_ZERO(&readfds);
-    FD_SET(fileno(stdin), &readfds);
-    if (FD_ISSET(fileno(stdin), &readfds)) {
-      read(fileno(stdin), charmsg, sizeof(msg));
-      msg = charmsg;
-      fflush(stdin);
-      split_msg(msg," ", msg_p);
+   	if(login_st == 0){
+   		//offline
+    	FD_ZERO(&readfds);
+    	// FD_SET(sockfd,&readfds);
+    	FD_SET(fileno(stdin), &readfds);
+    	select(fdmax+1,&readfds,NULL,NULL,NULL);
+    	if (FD_ISSET(fileno(stdin), &readfds)) {
+      		read(fileno(stdin), charmsg, sizeof(msg));
+      		msg = charmsg;
+      		fflush(stdin);
+     		split_msg(msg," ", msg_p);
 
-      int mark;
-      if(msg_p[0] == "LOGIN"){
-          mark =1;
-      }
-      if(msg_p[0] == "EXIT"){
-          mark =2;
-      }
-      if(msg_p[0] == "IP"){
-          mark =3;
-      }
-      if(msg_p[0] == "AUTHOR"){
-          mark =4;
-      }
-      if(msg_p[0] == "PORT"){
-          mark =5;
-      }
+		      int mark;
+		      if(msg_p[0] == "LOGIN"){
+		          mark =1;
+		      }
+		      if(msg_p[0] == "EXIT"){
+		          mark =2;
+		      }
+		      if(msg_p[0] == "IP"){
+		          mark =3;
+		      }
+		      if(msg_p[0] == "AUTHOR"){
+		          mark =4;
+		      }
+		      if(msg_p[0] == "PORT"){
+		          mark =5;
+		      }
 
 
 
       switch (mark){
             case 1:{
-               cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0]);
+               cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0].c_str());
                   //need change
                   myServerInfo[0] = msg_p[1]; //ip
                   myServerInfo[1] = msg_p[2]; //port
@@ -807,7 +814,7 @@ int client_process(string MYPORT)
                         }
                         if (p2 == NULL) {
                         //fprintf(stderr, "client: failed to connect\n");
-                        cse4589_print_and_log("[%s:ERROR]\n", msg_p[0]);
+                        cse4589_print_and_log("[%s:ERROR]\n", msg_p[0].c_str());
                         break;
                         }
 
@@ -819,237 +826,231 @@ int client_process(string MYPORT)
                      msg = temp_num + myCLientInfo[0] + blank + myCLientInfo[1] + blank +myCLientInfo[2];
                      if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
                         //printf("Done!\n");
-                  cse4589_print_and_log("[%s:END]\n", msg_p[0]);
+                  cse4589_print_and_log("[%s:END]\n", msg_p[0].c_str());
                } 
             case 2:{
-        cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0]);
-        string temp_num = "5 ";
-        msg = temp_num +  blank + myCLientInfo[1];
-        if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
-             // printf("Done!\n");
-        cse4589_print_and_log("[%s:END]\n", msg_p[0]);
-        break;
-      }
+				        cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0].c_str());
+				        string temp_num = "5 ";
+				        msg = temp_num +  blank + myCLientInfo[1];
+				        if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
+				             // printf("Done!\n");
+				        cse4589_print_and_log("[%s:END]\n", msg_p[0].c_str());
+				        break;
+      		}
 
-      case 3:{
-          log_IP(myCLientInfo[1]);
-          break;
+      		case 3:{
+			          log_IP(myCLientInfo[1]);
+			          break;
+      		}	
+      		case 4:{
+			          log_AUTHOR();
+			          break;
+     		 }
+      		case 5:{
+			          log_PORT(str_to_int(MYPORT));
+			          break;
+     		}
       }
-      case 4:{
-          log_AUTHOR();
-          break;
-      }
-      case 5:{
-          log_PORT(str_to_int(MYPORT));
-          break;
-      }
-      }
-   }else{
-    FD_ZERO(&readfds);
-    FD_SET(fileno(stdin), &readfds);
-    FD_SET(sockfd, &readfds);
-    fdmax = sockfd;
-    select(fdmax + 1, &readfds, NULL, NULL, NULL);
-    // handle commands
-    if (FD_ISSET(fileno(stdin), &readfds)) {
-      read(fileno(stdin), charmsg, sizeof charmsg);
-      msg = charmsg;
-      fflush(stdin);
-      split_msg(msg," ", msg_p);
-
-
-      int mark;
-      if(msg_p[0] == "LOGOUT"){
-          mark =1;
-      }
-      if(msg_p[0] == "EXIT"){
-          mark =2;
-      }
-      if(msg_p[0] == "IP"){
-          mark =3;
-      }
-      if(msg_p[0] == "AUTHOR"){
-          mark =4;
-      }
-      if(msg_p[0] == "PORT"){
-          mark =5;
-      }
-      if(msg_p[0] == "LIST"){
-          mark =6;
-      }
-      if(msg_p[0] == "REFRESH"){
-          mark =7;
-      }
-      if(msg_p[0] == "BROADCAST"){
-          mark =8;
-      }
-      if(msg_p[0] == "BLOCK"){
-          mark =9;
-      }
-      if(msg_p[0] == "UNBLOCK"){
-          mark =10;
-      }
-      if(msg_p[0] == "SEND"){
-          mark =11;
-      }
-
-      switch(mark){
-      case 1:{
-        cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0]);
-        string temp_num = "4 ";
-        msg = temp_num + myCLientInfo[0] + blank + myCLientInfo[1] + blank + myCLientInfo[2];
-        if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
-              //printf("Done!\n");
-        cse4589_print_and_log("[%s:END]\n", msg_p[0]);
-        break;
-      }
-      
-      case 2: {
-        cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0]);
-        string temp_num = "5 ";
-        msg = temp_num + myCLientInfo[0] + blank + myCLientInfo[1] + blank + myCLientInfo[2];
-        if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
-             // printf("Done!\n");
-        cse4589_print_and_log("[%s:END]\n", msg_p[0]);
-        break;
-      }
-
-      case 3: {
-          log_IP(myCLientInfo[1]);
-          break;
-      }
-      case 4:{
-          log_AUTHOR();
-          break;
-      }
-      case 5:{
-          log_PORT(str_to_int(MYPORT));
-          break;
-      }
-      case 6: {
-          log_LIST(Clientlist);
-          break;     
-      }
-      case 7:{
-        cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0]);
-          msg = "7";
-        if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
-          //printf("Done!\n");
-        cse4589_print_and_log("[%s:END]\n", msg_p[0]);
-        break;
-      }
-      case 8:{
-        cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0]);
-        string temp_num = "6 ";
-        msg = temp_num + blank + myCLientInfo[1] + (string)blank + msg;
-        if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
-          //printf("Done!\n");
-        cse4589_print_and_log("[%s:END]\n", msg_p[0]);
-        break;
-      }
-      case 9: {
-          cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0]);
-          vector<string>::iterator ret;
-          ret = find(BlockList.begin(), BlockList.end(), msg_p[1]);
-          if(ret == BlockList.end()) {
-            BlockList.push_back(msg_p[1]);
-            string temp_num = "2 ";
-            msg = temp_num + myCLientInfo[1] + blank + msg_p[1];
-            if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
-              //printf("Done!\n");
-            cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0]);
-            break;
-          }else{
-            cse4589_print_and_log("[%s:ERROR]\n", msg_p[0]);
-            break;
-          }
-      }
-      case 10:{
-        cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0]);
-        vector<string>::iterator ret;
-        ret = find(BlockList.begin(), BlockList.end(), msg_p[1]);
-        if(ret == BlockList.end()) {
-          cse4589_print_and_log("[%s:ERROR]\n", msg_p[0]);
-          break;
-        }
-        else {
-          BlockList.erase(ret);
-          string temp_num = "3 ";
-          msg = temp_num + myCLientInfo[1] + blank + msg_p[1];
-          if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
-            //printf("Done!\n");
-          cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0]);
-          break;
-        }
-      }
-      case 11:{
-        cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0]);
-        msg = "";
-        for(int i = 2; i < msg_p.size(); ++i){
-          msg = msg +blank+ msg_p[i];
-        }
-        string temp_num = "0 ";
-        msg = temp_num + msg_p[1] + blank + msg;
-        if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
-            //printf("Done!\n");
-          cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0]);
-          break;
-      }
-
-      }
-      //handleCommands(msg, 1);
-    }  // handle new client connection
-    else if (FD_ISSET(sockfd, &readfds)) {
-      if(recv(sockfd, charmsg, sizeof charmsg, 0) == 0){
-        close(sockfd);
-        sockfd = 0;
-      }else{
-      msg = charmsg;
-      split_msg(msg," ", msg_p);
-      switch (str_to_int(msg_p[0])){
-
-        //message
-          case 0:{
-          
-          msg = msg_p[3];
-          for(int i = 4; i < msg_p.size(); ++i){
-            msg = msg +blank+ msg_p[i];
-          }
-          log_EVENT(msg_p[1],msg);
-          cout<<msg_p[1]<<" "<<msg<<endl;
-          break;
-          }
-        
-        //update list
-        case 1:{
-
-          for(int i =0; i < (msg_p.size()-1)/3; i++){
-            for(int j = 1; j < msg_p.size(); j++){
-               Clientlist[i][(j-1) % 3] = msg_p[j];
-            }
-          }
-
-          break;
-        } 
-
-        case 6:{
-          msg = msg_p[2];
-          for(int i = 3; i < msg_p.size(); ++i){
-            string blank = " ";
-            msg = msg +blank+ msg_p[i];
-          }
-          log_EVENT(msg_p[1], msg);
-          cout<<msg_p[1]<<" "<<msg<<endl;
-        }       
-      }
-        //handleClientEvents(msg);
-      }
-    }
   }
+}else{
+		   		FD_ZERO(&readfds);
+		    	 FD_SET(sockfd,&readfds);
+		    	FD_SET(fileno(stdin), &readfds);
+		    	select(fdmax+1,&readfds,NULL,NULL,NULL);
+		    	if (FD_ISSET(fileno(stdin), &readfds){
+				      read(fileno(stdin), charmsg, sizeof charmsg);
+				      msg = charmsg;
+				      fflush(stdin);
+				      split_msg(msg," ", msg_p);
 
-}
-}
-}
+
+						    int mark;
+						      if(msg_p[0] == "LOGOUT"){
+						          mark =1;
+						      }
+						      if(msg_p[0] == "EXIT"){
+						          mark =2;
+						      }
+						      if(msg_p[0] == "IP"){
+						          mark =3;
+						      }
+						      if(msg_p[0] == "AUTHOR"){
+						          mark =4;
+						      }
+						      if(msg_p[0] == "PORT"){
+						          mark =5;
+						      }
+						      if(msg_p[0] == "LIST"){
+						          mark =6;
+						      }
+						      if(msg_p[0] == "REFRESH"){
+						          mark =7;
+						      }
+						      if(msg_p[0] == "BROADCAST"){
+						          mark =8;
+						      }
+						      if(msg_p[0] == "BLOCK"){
+						          mark =9;
+						      }
+						      if(msg_p[0] == "UNBLOCK"){
+						          mark =10;
+						      }
+						      if(msg_p[0] == "SEND"){
+						          mark =11;
+						      }
+
+						      switch(mark){
+								      case 1:{
+										        cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0].c_str());
+										        string temp_num = "4 ";
+										        msg = temp_num + myCLientInfo[0] + blank + myCLientInfo[1] + blank + myCLientInfo[2];
+										        if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
+										              //printf("Done!\n");
+										        cse4589_print_and_log("[%s:END]\n", msg_p[0].c_str());
+										        break;
+								      }
+								      
+								      case 2: {
+										        cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0].c_str());
+										        string temp_num = "5 ";
+										        msg = temp_num + myCLientInfo[0] + blank + myCLientInfo[1] + blank + myCLientInfo[2];
+										        if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
+										             // printf("Done!\n");
+										        cse4589_print_and_log("[%s:END]\n", msg_p[0].c_str());
+										        break;
+								      }
+
+								      case 3: {
+								          log_IP(myCLientInfo[1]);
+								          break;
+								      }
+								      case 4:{
+								          log_AUTHOR();
+								          break;
+								      }
+								      case 5:{
+								          log_PORT(str_to_int(MYPORT));
+								          break;
+								      }
+								      case 6: {
+								          log_LIST(Clientlist);
+								          break;     
+								      }
+								      case 7:{
+									        cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0].c_str());
+									          msg = "7";
+									        if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
+									          //printf("Done!\n");
+									        cse4589_print_and_log("[%s:END]\n", msg_p[0].c_str());
+									        break;
+								      }
+								      case 8:{
+									        cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0]).c_str();
+									        string temp_num = "6 ";
+									        msg = temp_num + blank + myCLientInfo[1] + (string)blank + msg;
+									        if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
+									          //printf("Done!\n");
+									        cse4589_print_and_log("[%s:END]\n", msg_p[0].c_str());
+									        break;
+								      }
+								      case 9: {
+								          cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0].c_str());
+								          vector<string>::iterator ret;
+								          ret = find(BlockList.begin(), BlockList.end(), msg_p[1]);
+								          if(ret == BlockList.end()) {
+										            BlockList.push_back(msg_p[1]);
+										            string temp_num = "2 ";
+										            msg = temp_num + myCLientInfo[1] + blank + msg_p[1];
+										            if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
+										              //printf("Done!\n");
+										            cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0].c_str());
+										            break;
+								          }else{
+								            cse4589_print_and_log("[%s:ERROR]\n", msg_p[0].c_str());
+								            break;
+								          }
+								      }
+								      case 10:{
+										        cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0].c_str());
+										        vector<string>::iterator ret;
+										        ret = find(BlockList.begin(), BlockList.end(), msg_p[1]);
+										        if(ret == BlockList.end()) {
+										          cse4589_print_and_log("[%s:ERROR]\n", msg_p[0].c_str());
+										          break;
+										        }
+										        else {
+										          BlockList.erase(ret);
+										          string temp_num = "3 ";
+										          msg = temp_num + myCLientInfo[1] + blank + msg_p[1];
+										          if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
+										            //printf("Done!\n");
+										          cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0].c_str());
+										          break;
+										        }
+								      }
+								      case 11:{
+										        cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0].c_str());
+										        msg = "";
+										        for(int i = 2; i < msg_p.size(); ++i){
+										          msg = msg +blank+ msg_p[i];
+										        }
+										        string temp_num = "0 ";
+										        msg = temp_num + msg_p[1] + blank + msg;
+										        if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
+										            //printf("Done!\n");
+										          cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0].c_str());
+										          break;
+								      }
+							  }
+				 } else if (FD_ISSET(sockfd, &readfds)) {
+				      if(recv(sockfd, charmsg, sizeof charmsg, 0) == 0){
+				        close(sockfd);
+				        sockfd = 0;
+				      }else{
+							      msg = charmsg;
+							      split_msg(msg," ", msg_p);
+							      switch (str_to_int(msg_p[0])){
+							        //message
+							          	 case 0:{
+							          
+										          	msg = msg_p[3];
+										          for(int i = 4; i < msg_p.size(); ++i){
+										            msg = msg +blank+ msg_p[i];
+										          }
+										          log_EVENT(msg_p[1],msg);
+										          cout<<msg_p[1]<<" "<<msg<<endl;
+										          break;
+							          	 }
+							        
+							        	//update list
+							        	 case 1:{
+
+										          for(int i =0; i < (msg_p.size()-1)/3; i++){
+										            for(int j = 1; j < msg_p.size(); j++){
+										               Clientlist[i][(j-1) % 3] = msg_p[j];
+										            }
+										          }
+
+										          break;
+										 } 
+
+							       		 case 6:{
+											          msg = msg_p[2];
+											          for(int i = 3; i < msg_p.size(); ++i){
+											            string blank = " ";
+											            msg = msg +blank+ msg_p[i];
+											          }
+											          log_EVENT(msg_p[1], msg);
+											          cout<<msg_p[1]<<" "<<msg<<endl;
+							     		 }       
+							      }
+				        //handleClientEvents(msg);
+				      }
+				    }
+				}
+
+
+
 int main(int argc, char **argv){
 	/*Init. Logger*/
 	cse4589_init_log(argv[2]);
