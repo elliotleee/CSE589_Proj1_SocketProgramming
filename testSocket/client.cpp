@@ -11,7 +11,7 @@
 #include <arpa/inet.h>
 #include <iostream>
 #include <vector>
-#
+
 
 #include <algorithm>
 
@@ -62,25 +62,25 @@ void split_msg(string& src, const string& separator, vector<string>& dest)
 
 void log_IP(string ip){
 string command = "IP";
-cse4589_print_and_log("[%s:SUCCESS]\n", command);
-cse4589_print_and_log("IP:%s\n", ip);
-cse4589_print_and_log("[%s:END]\n", command);
+cse4589_print_and_log("[%s:SUCCESS]\n", command.c_str());
+cse4589_print_and_log("IP:%s\n", ip.c_str());
+cse4589_print_and_log("[%s:END]\n", command.c_str());
 }
 
 void log_AUTHOR() {
 string command = "AUTHOR";
-cse4589_print_and_log("[%s:SUCCESS]\n", command);
+cse4589_print_and_log("[%s:SUCCESS]\n", command.c_str());
 string ubit_name_1 = "lchen76";
 string ubit_name_2 = "ziangli";
-cse4589_print_and_log("I, %s, %s, have read and understood the course academic integrity policy.\n", ubit_name_1, ubit_name_2);
-cse4589_print_and_log("[%s:END]\n", command);
+cse4589_print_and_log("I, %s, %s, have read and understood the course academic integrity policy.\n", ubit_name_1.c_str(), ubit_name_2.c_str());
+cse4589_print_and_log("[%s:END]\n", command.c_str());
 }
 
 void log_PORT(int port) {
 string command = "PORT";
-cse4589_print_and_log("[%s:SUCCESS]\n", command);
+cse4589_print_and_log("[%s:SUCCESS]\n", command.c_str());
 cse4589_print_and_log("PORT:%d\n", port);
-cse4589_print_and_log("[%s:END]\n", command);
+cse4589_print_and_log("[%s:END]\n", command.c_str());
 }
 
 bool cmp(string p[], string q[]) {
@@ -103,7 +103,7 @@ bool cmp(string p[], string q[]) {
 
 void log_LIST(string list[][3]) {
 string command = "LIST";
-cse4589_print_and_log("[%s:SUCCESS]\n", command);
+cse4589_print_and_log("[%s:SUCCESS]\n", command.c_str());
 string **res = new string*[4];
   for (int i = 0; i < 4; ++i) {
     res[i] = new string[3];
@@ -116,16 +116,16 @@ string **res = new string*[4];
   sort(res, res + 4, cmp);
 for(int i = 0; i < 4; ++i){
   if(res[i][0] == "") break;
-  cse4589_print_and_log("%-5d%-35s%-20s%-8d\n", i, res[i][0], res[i][1], res[i][2]);
+  cse4589_print_and_log("%-5d%-35s%-20s%-8d\n", i, res[i][0].c_str(), res[i][1].c_str(), res[i][2].c_str());
 }
-cse4589_print_and_log("[%s:END]\n", command);
+cse4589_print_and_log("[%s:END]\n", command.c_str());
 }
 
 void log_EVENT(string client_ip, string msg) {
 string command = "EVENT";
-cse4589_print_and_log("[%s:SUCCESS]\n", command);
-cse4589_print_and_log("msg from:%s\n[msg]:%s\n", client_ip, msg);
-cse4589_print_and_log("[%s:END]\n", command);
+cse4589_print_and_log("[%s:SUCCESS]\n", command.c_str());
+cse4589_print_and_log("msg from:%s\n[msg]:%s\n", client_ip.c_str(), msg.c_str());
+cse4589_print_and_log("[%s:END]\n", command.c_str());
 }
 
 int client_process(string MYPORT)
@@ -138,6 +138,7 @@ int client_process(string MYPORT)
    struct addrinfo hints, *servinfo,*clientinfo, *p, *p2;
    int rv;
    char s[INET6_ADDRSTRLEN]={""};
+   string blank = " ";
 
    vector<string> Msg;
 
@@ -272,15 +273,17 @@ int client_process(string MYPORT)
            
                      printf("client: connecting to %s\n", s);
                      freeaddrinfo(servinfo); // 全部皆以这个 structure 完成
-                     msg = "1 " + myCLientInfo[0] + " " + myCLientInfo[1] + " " +myCLientInfo[2];
-                     if(send(sockfd, msg.c_str(), strlen(msg), 0) == strlen(msg))
+                     string temp_num = "1 ";
+                     msg = temp_num + myCLientInfo[0] + blank + myCLientInfo[1] + blank +myCLientInfo[2];
+                     if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
                         printf("Done!\n");
                   cse4589_print_and_log("[%s:END]\n", msg_p[0]);
                } 
             case 2:{
         cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0]);
-        msg = "5 " +  " " + myCLientInfo[1];
-        if(send(sockfd, msg, strlen(msg), 0) == strlen(msg))
+        string temp_num = "5 ";
+        msg = temp_num +  blank + myCLientInfo[1];
+        if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
               printf("Done!\n");
         cse4589_print_and_log("[%s:END]\n", msg_p[0]);
         break;
@@ -295,7 +298,7 @@ int client_process(string MYPORT)
           break;
       }
       case 5:{
-          log_PORT(MYPORT);
+          log_PORT(stoi(MYPORT));
           break;
       }
       }
@@ -307,7 +310,8 @@ int client_process(string MYPORT)
     select(fdmax + 1, &readfds, NULL, NULL, NULL);
     // handle commands
     if (FD_ISSET(fileno(stdin), &readfds)) {
-      read(fileno(stdin), msg, sizeof msg);
+      read(fileno(stdin), charmsg, sizeof charmsg);
+      msg = charmsg;
       fflush(stdin);
       split_msg(msg," ", msg_p);
 
@@ -350,8 +354,9 @@ int client_process(string MYPORT)
       switch(mark){
       case 1:{
         cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0]);
-        msg = "4 " + clientinfo[0] + " " + clientinfo[1] + " " + clientinfo[2];
-        if(send(sockfd, msg, strlen(msg), 0) == strlen(msg))
+        string temp_num = "4 ";
+        msg = temp_num + myCLientInfo[0] + blank + myCLientInfo[1] + blank + myCLientInfo[2];
+        if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
               printf("Done!\n");
         cse4589_print_and_log("[%s:END]\n", msg_p[0]);
         break;
@@ -359,7 +364,8 @@ int client_process(string MYPORT)
       
       case 2: {
         cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0]);
-        msg = "5 " + clientinfo[0] + " " + clientinfo[1] + " " + clientinfo[2];
+        string temp_num = "5 ";
+        msg = temp_num + myCLientInfo[0] + blank + myCLientInfo[1] + blank + myCLientInfo[2];
         if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
               printf("Done!\n");
         cse4589_print_and_log("[%s:END]\n", msg_p[0]);
@@ -392,7 +398,8 @@ int client_process(string MYPORT)
       }
       case 8:{
         cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0]);
-        msg = "6 " + " " + myCLientInfo[1] + (string)" " + msg;
+        string temp_num = "6 ";
+        msg = temp_num + blank + myCLientInfo[1] + (string)blank + msg;
         if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
           printf("Done!\n");
         cse4589_print_and_log("[%s:END]\n", msg_p[0]);
@@ -404,7 +411,8 @@ int client_process(string MYPORT)
           ret = find(BlockList.begin(), BlockList.end(), msg_p[1]);
           if(ret == BlockList.end()) {
             BlockList.push_back(msg_p[1]);
-            msg = "2 " + myCLientInfo[1] + " " + msg_p[1];
+            string temp_num = "2 ";
+            msg = temp_num + myCLientInfo[1] + blank + msg_p[1];
             if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
               printf("Done!\n");
             cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0]);
@@ -424,7 +432,8 @@ int client_process(string MYPORT)
         }
         else {
           BlockList.erase(ret);
-          msg = "3 " + myCLientInfo[1] + " " + msg_p[1];
+          string temp_num = "3 ";
+          msg = temp_num + myCLientInfo[1] + blank + msg_p[1];
           if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
             printf("Done!\n");
           cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0]);
@@ -435,9 +444,10 @@ int client_process(string MYPORT)
         cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0]);
         msg = "";
         for(int i = 2; i < msg_p.size(); ++i){
-          msg = msg +" "+ msg_p[i];
+          msg = msg +blank+ msg_p[i];
         }
-        msg = "0 " + msg_p[1] + " " + msg;
+        string temp_num = "0 ";
+        msg = temp_num + msg_p[1] + blank + msg;
         if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
             printf("Done!\n");
           cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0]);
@@ -461,7 +471,7 @@ int client_process(string MYPORT)
           
           msg = msg_p[3];
           for(int i = 4; i < msg_p.size(); ++i){
-            msg = msg +" "+ msg_p[i];
+            msg = msg +blank+ msg_p[i];
           }
           log_EVENT(msg_p[1],msg);
           cout<<msg_p[1]<<" "<<msg<<endl;
@@ -483,7 +493,8 @@ int client_process(string MYPORT)
         case 6:{
           msg = msg_p[2];
           for(int i = 3; i < msg_p.size(); ++i){
-            msg = msg +" "+ msg_p[i];
+            string blank = " ";
+            msg = msg +blank+ msg_p[i];
           }
           log_EVENT(msg_p[1], msg);
           cout<<msg_p[1]<<" "<<msg<<endl;

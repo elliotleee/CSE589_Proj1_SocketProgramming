@@ -12,6 +12,8 @@
 #include <sys/wait.h>
 #include <signal.h>
 #include <string>
+#include <vector> 
+#include <algorithm>
 
 #include "./include/global.h"
 #include "./include/logger.h"
@@ -69,7 +71,7 @@ cse4589_print_and_log("I, %s, %s, have read and understood the course academic i
 cse4589_print_and_log("[%s:END]\n", command);
 }
 
-void log_PORT(int port) {
+void log_PORT(string port) {
 string command = "PORT";
 cse4589_print_and_log("[%s:SUCCESS]\n", command);
 cse4589_print_and_log("PORT:%d\n", port);
@@ -94,7 +96,7 @@ bool cmp(string p[], string q[]) {
   return p1 < p2;
 }
 
-void log_LIST(string list[][9]) {
+void log_LIST(string list[][10]) {
 string command = "LIST";
 cse4589_print_and_log("[%s:SUCCESS]\n", command);
 string **res = new string*[4];
@@ -114,7 +116,8 @@ cse4589_print_and_log("%-5d%-35s%-20s%-8d\n", i, res[i][0], res[i][1], res[i][2]
 cse4589_print_and_log("[%s:END]\n", command);
 }
 
-void log_STATIC(string list[][10]) {
+void log_STATICS(string list[][10]) {
+	string command = "STATICS";
     cse4589_print_and_log("[%s:SUCCESS]\n", command);
     string **res = new string*[4];
     for (int i = 0; i < 4; ++i) {
@@ -168,7 +171,7 @@ void log_BLOCKED(string list[][10], string cli_ip) {
 }
 
 void log_EVENT(string from_ip, string msg, string to_ip) {
-	string command = "EVENT"
+	string command = "EVENT";
 	cse4589_print_and_log("[%s:SUCCESS]\n", command);
 	cse4589_print_and_log("msg from:%s, to:%s\n[msg]:%s\n", from_ip, to_ip, msg);
 	cse4589_print_and_log("[%s:END]\n", command);
@@ -195,10 +198,13 @@ bool valid_ip(string ip_test) {
 	return true;
 }
 
-int main(int myPORT) {
+int server_process(string myPORT) {
 	fd_set master; // master file descriptor 表
 	fd_set read_fds; // 给 select() 用的暂时 file descriptor 表
 	int fdmax; // 最大的 file descriptor 数目
+	string blank = " ";
+
+	int serversocketfd;
 
 	int listener; // listening socket descriptor
 	int newfd; // 新接受的 accept() socket descriptor
@@ -208,8 +214,9 @@ int main(int myPORT) {
 	char buf[256]; // 储存 client 数据的缓冲区
 	int nbytes;
 
-    string Clientlist[4][9] = {""};
-    string msg[200][3]={""};
+    string ClientList[4][10] = {""};
+    string msg;
+   char charmsg[50000];
 
 	char remoteIP[INET6_ADDRSTRLEN];
     char s[INET6_ADDRSTRLEN]={""};
@@ -218,7 +225,7 @@ int main(int myPORT) {
 
 	vector<vector<string>> buffer;
     vector<string> temp_buffer(3);
-    
+    vector<string> msg_p;
 
 	struct addrinfo hints, *ai, *p;
 
@@ -232,10 +239,10 @@ int main(int myPORT) {
 	hints.ai_flags = AI_PASSIVE;
 
 	string myIP;
-	vector<string> msg_p;
+	
 
 
-	if ((rv = getaddrinfo(NULL, myPORT, &hints, &ai)) != 0) {
+	if ((rv = getaddrinfo(NULL, (const char*)myPORT.c_str(), &hints, &ai)) != 0) {
 		fprintf(stderr, "selectserver: %s\n", gai_strerror(rv));
 		exit(1);
 	}
@@ -245,6 +252,7 @@ int main(int myPORT) {
 		if (listener < 0) {
 		continue;
 		}
+	serversocketfd = listener;
     inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr), s, sizeof s);
     myIP = s;
 
@@ -292,37 +300,57 @@ int main(int myPORT) {
 		perror("select");
 		exit(4);
 		}
-   
+   		
+   		int mark;
+	      if(msg_p[0] == "LIST"){
+	          mark =1;
+	      }
+	      if(msg_p[0] == "STATICS"){
+	          mark =2;
+	      }
+	      if(msg_p[0] == "IP"){
+	          mark =3;
+	      }
+	      if(msg_p[0] == "AUTHOR"){
+	          mark =4;
+	      }
+	      if(msg_p[0] == "PORT"){
+	          mark =5;
+	      }
+	      if(msg_p[0] == "BLOCKED"){
+	      	mark = 6;
+	      }
 
 		// 在现存的连接中寻找需要读取的数据
-		if (FD_ISSET(fileno(stdin), &readfds)) {
-   		    read(fileno(stdin), msg, sizeof msg);
+		if (FD_ISSET(fileno(stdin), &read_fds)) {
+   		    read(fileno(stdin), charmsg, sizeof charmsg);
+   		    msg = charmsg;
   		    fflush(stdin);
   		    split_msg(msg," ", msg_p);
- 	     	switch msg_p{
-    		  	case "IP":{
-      			    Log_IP(myIP);
+ 	     	switch (stoi(msg_p[0])){
+    		  	case 3:{
+      			    log_IP(myIP);
       			    break;
 				}
-     		  	case "AUTHOR": {
+     		  	case 4: {
      		  		log_AUTHOR();
      		  		break;
 				   }
-				case "PORT":{
+				case 5:{
 					log_PORT(myPORT);
 					break;
 				}
-				case "LIST":{
-					log_LIST(Clientlist);
+				case 1:{
+					log_LIST(ClientList);
 					break;
 				}
-				case "STATIC":{
-					log_STATIC(Clientlist);
+				case 2:{
+					log_STATICS(ClientList);
 					break;     
 				} 
-				case "BLOCKED":{
+				case 6:{
 
-					log_BLOCKED(Clientlist,msg_p[1]);
+					log_BLOCKED(ClientList,msg_p[1]);
 					break;
 				}
     		}
@@ -344,12 +372,8 @@ int main(int myPORT) {
 					if (newfd > fdmax) { // 持续追踪最大的 fd
 						fdmax = newfd;
 					}
-					printf("selectserver: new connection from %s on "+"socket %d\n",
-				    inet_ntop(remoteaddr.ss_family,
-					get_in_addr((struct sockaddr*)&remoteaddr),
-					remoteIP, INET6_ADDRSTRLEN),
-				    newfd);
-					}
+				}
+
 
 			}else {
 			// 处理来自 client 的数据
@@ -364,25 +388,27 @@ int main(int myPORT) {
 				close(i); // bye!
 				FD_CLR(i, &master); // 从 master set 中移除
 
-			}else if (FD_ISSET(sockfd, &readfds)) {
-     			 if(recv(sockfd, msg, sizeof msg, 0) == 0){
-     				   close(sockfd);
-        			   sockfd = 0;
+			}else if (FD_ISSET(serversocketfd, &read_fds)) {
+     			 if(recv(serversocketfd, charmsg, sizeof charmsg, 0) == 0){
+     				break;   
+        			   
     			  }else{
+    			  	  msg = charmsg;
      			       split_msg(msg," ", msg_p);
-    				  switch msg_p[0]{
+    				  switch (stoi(msg_p[0])){
 				        //message
-				        case "0":{
+				        case 0:{
 
 							for (int i = 0; i <=3 ;i ++){
-								if (Clientlist[i][2] == msg_p[1]){
-									if(Clientlist[i][5] == 1){
-										send(Clientlist[i][9], msg, strlen(msg), 0) == strlen(msg);
+								if (ClientList[i][2] == msg_p[1]){
+									if(ClientList[i][5] == "1"){
+										int tempsockfd = stoi(ClientList[i][9]);
+										send(tempsockfd, (const char*)msg.c_str(), msg.length(), 0);
 										msg = msg_p[3];
 										for(int m = 4; m < msg_p.size(); m++){
 											msg = msg +" "+ msg_p[m];
 										}
-										log_EVENT(msg_p[1], string msg, msg_p[2]);
+										log_EVENT(msg_p[1], msg, msg_p[2]);
 									}
 									else{
 										temp_buffer[0] = msg_p[1];
@@ -408,30 +434,28 @@ int main(int myPORT) {
 				        // }
 
 				        //hostname
-				        case "1":{
+				        case 1:{
 							string host = msg_p[1];
 							string host_ip = msg_p[2];
 							string port = msg_p[3];
 							for(int i = 0; i < 4; ++i) {
-								if(clientlist[i][1] == host_ip) {
-									clientlist[i][5] = 1;
+								if(ClientList[i][1] == host_ip) {
+									ClientList[i][5] = 1;
 									for(int j = 0; j < buffer.size(); ++j) {
 										if(buffer[j][1] == host_ip){
-											send(clienlist[i][9], buffer[j][2], strlen(buffer[j][2]), 0);
+											send(stoi(ClientList[i][9]), (const char*)buffer[j][2].c_str(), buffer[j][2].length(), 0);
 											buffer.erase(buffer.begin()+ j-1);
 										}
 									}
 									break;
 								}
 							}
-				        	string temp[10];
-							temp[0] = host;
-							temp[1] = host_ip;
-							temp[2] = port;
-							temp[5] = "1";
 							for(int i = 0; i < 4; ++i){
-								if(clientlist[i][0] == ""){
-									clientlist[i] = temp;
+								if(ClientList[i][0] == ""){
+									ClientList[i][0] = host;
+									ClientList[i][1] = host_ip;
+									ClientList[i][2] = port;
+									ClientList[i][5] = "1";
 									break;
 								}
 							}
@@ -439,14 +463,14 @@ int main(int myPORT) {
 				        }        
 
 				        //block ip
-				        case "2":{
+				        case 2:{
 							string from_ip = msg_p[1];
 							string to_ip = msg_p[2];
 							for(int i = 0; i < 4; ++i) {
-								if(clienlist[i][1] == from_ip){
+								if(ClientList[i][1] == from_ip){
 									for(int j = 6; j < 9; ++j) {
-										if(clientlist[i][j] == ""){
-											clientlist[i][j] = to_ip;
+										if(ClientList[i][j] == ""){
+											ClientList[i][j] = to_ip;
 											break;
 										}
 									}
@@ -456,14 +480,14 @@ int main(int myPORT) {
 				        }
 
 				        //unblock ip
-				        case "3":{
+				        case 3:{
 							string from_ip = msg_p[1];
 							string to_ip = msg_p[2];
 							for(int i = 0; i < 4; ++i) {
-								if(clienlist[i][1] == from_ip){
+								if(ClientList[i][1] == from_ip){
 									for(int j = 6; j < 9; ++j) {
-										if(clientlist[i][j] == to_ip){
-											clientlist[i][j] = "";
+										if(ClientList[i][j] == to_ip){
+											ClientList[i][j] = "";
 											break;
 										}
 									}
@@ -473,11 +497,11 @@ int main(int myPORT) {
 				        }
 
 				        //log out
-				        case "4":{
+				        case 4:{
 							string ip_addr = msg_p[1];
 							for(int i = 0; i < 4; ++i) {
-								if(clientlist[i][1] == ip_addr){
-									clientlist[i][5] = "0";
+								if(ClientList[i][1] == ip_addr){
+									ClientList[i][5] = "0";
 									break;
 								}
 							}
@@ -485,12 +509,12 @@ int main(int myPORT) {
 				        }
 
 				        //exit
-				        case "5":{
+				        case 5:{
 							string ip_addr = msg_p[1];
 							for(int i = 0; i < 4; ++i){
-								if(clientlist[i][1] == ip_addr) {
+								if(ClientList[i][1] == ip_addr) {
 									for(int j = 0; j < 10; ++j) {
-										clientlist[i][j] = "";
+										ClientList[i][j] = "";
 									}
 									break;
 								}
@@ -498,20 +522,20 @@ int main(int myPORT) {
 				            break;
 				        }      
 				        //broadcast
-				        case "6":{
+				        case 6:{
 				        	for(int i = 0 ; i<4 ;i++){
-				        		if(Clientlist[i][1] != ""){
-				        			if(Clientlist[i][5] == "1"){
-				        				tempsockfd = stoi(Clientlist[i][9]);
-				        				send(tempsockfd, msg, strlen(msg), 0);
+				        		if(ClientList[i][1] != ""){
+				        			if(ClientList[i][5] == "1"){
+				        				int tempsockfd = stoi(ClientList[i][9]);
+				        				send(tempsockfd, (const char*)msg.c_str(), msg.length(), 0);
 				        				msg = msg_p[2];
 										for(int n = 3; n < msg_p.size(); n++){
 											msg = msg +" "+ msg_p[n];
 										}
-				        				log_EVENT(msg_p[1],msg,Clientlist[i][1])
+				        				log_EVENT(msg_p[1],msg,ClientList[i][1]);
 				        			}else{
 				        				temp_buffer[0] = msg_p[1];
-										temp_buffer[1] = Clientlist[i][1];
+										temp_buffer[1] = ClientList[i][1];
 										msg = msg_p[2];
 										for(int n = 3; n < msg_p.size(); n++){
 											msg = msg +" "+ msg_p[n];
@@ -525,21 +549,21 @@ int main(int myPORT) {
 				        } 
 
 				        //refresh
-				        case "7":{
+				        case 7:{
 				            msg="1";
 				        	int tempsockfd;
 				        	for(int i = 0 ; i<4 ;i++){
-				        		if(Clientlist[i][1] != ""){
-				        			if(msg_p[1] == Clientlist[i][1]){
-				        				tempsockfd = stoi(Clientlist[i][9]);
+				        		if(ClientList[i][1] != ""){
+				        			if(msg_p[1] == ClientList[i][1]){
+				        				tempsockfd = stoi(ClientList[i][9]);
 				        			}
 				        			for (int j =0; j < 3 ;j++){
-                                  		  msg= msg + " " + Clientlist[i][j];
+                                  		  msg= msg + blank + ClientList[i][j];
 
                             		}
                            		}
 				        	}
-				        	send(tempsockfd, msg, strlen(msg), 0);
+				        	send(tempsockfd, (const char*)msg.c_str(), msg.length(), 0);
 				            break;
 				        }
 
@@ -555,3 +579,7 @@ int main(int myPORT) {
 	}
 	} // END for( ; ; )--and you thought it would never end!
     
+int main(int argc,char** argv){
+  string MYPORT = argv[1];
+  server_process(MYPORT);
+}
