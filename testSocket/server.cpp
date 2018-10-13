@@ -118,31 +118,58 @@ cse4589_print_and_log("msg from:%s\n[msg]:%s\n", client_ip, msg);
 cse4589_print_and_log("[%s:END]\n", command);
 }
 
-void log_STATIC(string list[][9]) {
-	cse4589_print_and_log("[%s:SUCCESS]\n", command);
-	string **res = new string*[4];
-	for (int i = 0; i < 4; ++i) {
-		res[i] = new string[3];
-		res[i][0] = list[i][0];
-		res[i][1] = list[i][1];
-		res[i][2] = list[i][2];
-	}
-	sort(res, res + 4, cmp);
-	for(int i = 0; i < 4; ++i) {
-		if(res[i][0] == "") break;
-		cse4589_print_and_log("%-5d%-35s%-8d%-8d%-8s\n", i, res[i][0], res[i][3], res[i][4], res[i][5]);
-	}
-	cse4589_print_and_log("[%s:END]\n", command);
+void log_STATIC(string list[][10]) {
+    cse4589_print_and_log("[%s:SUCCESS]\n", command);
+    string **res = new string*[4];
+    for (int i = 0; i < 4; ++i) {
+        res[i] = new string[3];
+        res[i][0] = list[i][0];
+        res[i][1] = list[i][1];
+        res[i][2] = list[i][2];
+    }
+    sort(res, res + 4, cmp);
+    for(int i = 0; i < 4; ++i) {
+        if(res[i][0] == "") break;
+        cse4589_print_and_log("%-5d%-35s%-8d%-8d%-8s\n", i, res[i][0], res[i][3], res[i][4], res[i][5]);
+    }
+    cse4589_print_and_log("[%s:END]\n", command);
 }
 
-void log_BLOCKED(string list[][9], string cli_ip) {
-	cse4589_print_and_log("[%s:SUCCESS]\n", command);
-	vector<string> blocked;
-	for(int i = 0; i < 4; ++i){
-		if(list[i][1] == )
-	}
+void log_BLOCKED(string list[][10], string cli_ip) {
+    string command = "BLOCKED";
+    cse4589_print_and_log("[%s:SUCCESS]\n", command);
+    string blocked[3][3];
+    int idx = 0;
+    for(int i = 0; i < 4; ++i){
+        if(list[i][1] == cli_ip){
+            for(int j = 6; j < 9; ++j) {
+                if(list[i][j] != ""){
+                    blocked[idx][1] = list[i][j];
+                    for(int z = 0; z < 4; ++z){
+                        if(list[z][1] == blocked[idx][1]){
+                            blocked[idx][0] = list[z][0];
+                            blocked[idx][2] = list[z][2];
+                        }
+                    }
+                }
+                idx++;
+            }
+        }
+    }
+    string **res = new string*[3];
+    for (int i = 0; i < 3; ++i) {
+        res[i] = new string[3];
+        res[i][0] = list[i][0];
+        res[i][1] = list[i][1];
+        res[i][2] = list[i][2];
+    }
+    sort(res, res + 3, cmp);
+    for(int i = 0; i < 3; ++i){
+        if(res[i][0] == "") break;
+        cse4589_print_and_log("%-5d%-35s%-20s%-8d\n", i, res[i][0], res[i][1], res[i][2]);
+    }
+    cse4589_print_and_log("[%s:END]\n", command);
 }
-
 
 int main(int myPORT) {
 	fd_set master; // master file descriptor 表
@@ -245,7 +272,7 @@ int main(int myPORT) {
    		    read(fileno(stdin), msg, sizeof msg);
   		    fflush(stdin);
   		    split_msg(msg," ", msg_p);
- 	     	switch msg{
+ 	     	switch msg_p{
     		  	case "IP":{
       			    Log_IP(myIP);
       			    break;
@@ -267,7 +294,8 @@ int main(int myPORT) {
 					break;     
 				} 
 				case "BLOCKED":{
-					log_BLOCKED(Clientlist);
+
+					log_BLOCKED(Clientlist,msg_p[1]);
 					break;
 				}
     		}
@@ -318,14 +346,29 @@ int main(int myPORT) {
     				  switch msg_p[0]{
 				        //message
 				        case "0":{
-				            
-				            break;
-				        }
+
+				       	for (int i = 0; i <=3 ;i ++){
+				       		if (Clientlist[i][2] == msg_p[1]){
+				       			if(Clientlist[i][5] == 1){
+				       				send(Clientlist[i][9], msg, strlen(msg), 0) == strlen(msg)
+				       			}
+				       			else{
+				       				//offline wirte buffer vector
+				       			}
+
+				       		}else{
+				       			//not in list error
+				       		}
+				       	}
+				        // if(send(sockfd, msg, strlen(msg), 0) == strlen(msg))
+            // 				printf("Done!\n");    
+				        //     break;
+				        // }
 
 				        //hostname
 				        case "1":{
 
-				        msg_p
+				        
 
 				            break;
 				        }        
@@ -375,6 +418,4 @@ int main(int myPORT) {
 		} // END looping through file descriptors
 	}
 	} // END for( ; ; )--and you thought it would never end!
-
-	return 0;
-}
+    
