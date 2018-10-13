@@ -111,13 +111,6 @@ cse4589_print_and_log("%-5d%-35s%-20s%-8d\n", i, res[i][0], res[i][1], res[i][2]
 cse4589_print_and_log("[%s:END]\n", command);
 }
 
-void log_EVENT(string cilent_ip, string msg) {
-string command = "EVENT";
-cse4589_print_and_log("[%s:SUCCESS]\n", command);
-cse4589_print_and_log("msg from:%s\n[msg]:%s\n", client_ip, msg);
-cse4589_print_and_log("[%s:END]\n", command);
-}
-
 void log_STATIC(string list[][10]) {
     cse4589_print_and_log("[%s:SUCCESS]\n", command);
     string **res = new string*[4];
@@ -169,6 +162,18 @@ void log_BLOCKED(string list[][10], string cli_ip) {
         cse4589_print_and_log("%-5d%-35s%-20s%-8d\n", i, res[i][0], res[i][1], res[i][2]);
     }
     cse4589_print_and_log("[%s:END]\n", command);
+}
+
+void log_EVENT(string from_ip, string msg, string to_ip) {
+	string command = "EVENT"
+	cse4589_print_and_log("[%s:SUCCESS]\n", command);
+	cse4589_print_and_log("msg from:%s, to:%s\n[msg]:%s\n", from_ip, to_ip, msg);
+	cse4589_print_and_log("[%s:END]\n", command);
+}
+
+bool valid_ip(string ip_test) {
+	int dot_num = 0;
+	for(int i = 0; i < )
 }
 
 int main(int myPORT) {
@@ -350,19 +355,33 @@ int main(int myPORT) {
 				        //message
 				        case "0":{
 
-				       	for (int i = 0; i <=3 ;i ++){
-				       		if (Clientlist[i][2] == msg_p[1]){
-				       			if(Clientlist[i][5] == 1){
-				       				send(Clientlist[i][9], msg, strlen(msg), 0) == strlen(msg)
-				       			}
-				       			else{
-				       				//offline wirte buffer vector
-				       			}
+							for (int i = 0; i <=3 ;i ++){
+								if (Clientlist[i][2] == msg_p[1]){
+									if(Clientlist[i][5] == 1){
+										send(Clientlist[i][9], msg, strlen(msg), 0) == strlen(msg);
+										msg = "";
+										for(int i = 2; i < msg_p.size(); ++i){
+											msg = msg +" "+ msg_p[i];
+										}
+										log_EVENT(msg_p[1], string msg, msg_p[2]);
+									}
+									else{
+										temp_buffer[0] = msg_p[1];
+										temp_buffer[1] = msg_p[2];
+										msg = "";
+										for(int i = 2; i < msg_p.size(); ++i){
+											msg = msg +" "+ msg_p[i];
+										}
+										temp_buffer[2] = msg;
+										buffer.push_back(temp_buffer);
+									}
 
-				       		}else{
-				       			//not in list error
-				       		}
-				       	}
+								}else{
+									cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0]);
+									cse4589_print_and_log("[%s:ERROR]\n", msg_p[0]);
+								}
+							}
+						}
 				        // if(send(sockfd, msg, strlen(msg), 0) == strlen(msg))
             // 				printf("Done!\n");    
 				        //     break;
@@ -370,15 +389,43 @@ int main(int myPORT) {
 
 				        //hostname
 				        case "1":{
-
-				        
-
+							string host = msg_p[1];
+							string host_ip = msg_p[2];
+							string port = msg_p[3];
+							for(int i = 0; i < 4; ++i) {
+								if(clientlist[i][1] == host_ip) {
+									clientlist[i][5] = 1;
+									break;
+								}
+							}
+				        	string temp[10];
+							temp[0] = host;
+							temp[1] = host_ip;
+							temp[2] = port;
+							temp[5] = "1";
+							for(int i = 0; i < 4; ++i){
+								if(clientlist[i][0] == ""){
+									clientlist[i] = temp;
+									break;
+								}
+							}
 				            break;
 				        }        
 
 				        //block ip
 				        case "2":{
-
+							string from_ip = msg_p[1];
+							string to_ip = msg_p[2];
+							for(int i = 0; i < 4; ++i) {
+								if(clienlist[i][1] == from_ip){
+									for(int j = 6; j < 9; ++j) {
+										if(clientlist[i][j] == ""){
+											clientlist[i][j] = to_ip;
+											break;
+										}
+									}
+								}
+							}
 				            break;
 				        }
 
