@@ -243,7 +243,7 @@ int main(string MYPORT)
      } 
       case "EXIT": {
         cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0]);
-        msg = "5 " + clientinfo[0] + " " + clientinfo[1] + " " + clientinfo[2];
+        msg = "5 " +  " " + clientinfo[1];
         if(send(sockfd, msg, strlen(msg), 0) == strlen(msg))
               printf("Done!\n");
         cse4589_print_and_log("[%s:END]\n", msg_p[0]);

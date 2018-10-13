@@ -477,7 +477,15 @@ int main(int myPORT) {
 
 				        //exit
 				        case "5":{
-
+							string ip_addr = msg_p[1];
+							for(int i = 0; i < 4; ++i){
+								if(clientlist[i][1] == ip_addr) {
+									for(int j = 0; j < 10; ++j) {
+										clientlist[i][j] = "";
+									}
+									break;
+								}
+							}
 				            break;
 				        }      
 				        //broadcast
