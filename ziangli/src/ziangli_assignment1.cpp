@@ -48,14 +48,17 @@
 
 using namespace std;
 
-string initMyAddress(const char* port) {
-  string myIP;
+string myHostname;
+string myPORT;
+string myIP;
+
+void initMyAddress(const char* port) { //reference:https://github.com/jessefjxm/CSE589-Text-Chat-Application/blob/master/src/hwang58_assignment1.cpp
   // port
-  string myPORT = port;
+  myPORT = port;
   // hostname
   char hostname[1024];
   gethostname(hostname, sizeof(hostname) - 1);
-  string myHostname = hostname;
+  myHostname = hostname;
   // IP
   char buffer[256];
   size_t buflen = 256;
@@ -73,23 +76,7 @@ string initMyAddress(const char* port) {
   err = getsockname(sock, (sockaddr*)&name, &namelen);
   myIP = inet_ntop(AF_INET, &name.sin_addr, buffer, buflen);
   close(sock);
-  return myIP;
 }
-
-
-// #define MSG_SIZE 256
-// #define MAXDATASIZE 100
-
-
-
-
-/**
- * main function
- *
- * @param  argc Number of arguments
- * @param  argv The argument list
- * @return 0 EXIT_SUCCESS
- */
 
 int char_to_int(char s) {
 	if (s == '0') return 0;
@@ -313,7 +300,7 @@ bool valid_ip(string ip_test) {
 	return true;
 }
 
-int server_process(string myPORT) {
+int server_process(string MYPORT) {
 	fd_set master; // master file descriptor 表
 	int masterlist[4]={0};
 	fd_set read_fds; // 给 select() 用的暂时 file descriptor 表
@@ -364,7 +351,8 @@ int server_process(string myPORT) {
 
 	
 	   // cout << "start SUCCESS";
-    const char* charPORT = (const char*)myPORT.c_str();
+    const char* charPORT = (const char*)MYPORT.c_str();
+    initMyAddress(charPORT);
 
 	if ((rv = getaddrinfo(NULL, charPORT, &hints, &ai)) != 0) {
 		//fprintf(stderr, "selectserver: %s\n", gai_strerror(rv));
@@ -392,8 +380,6 @@ int server_process(string myPORT) {
 		break;
 	}
 			serversocketfd = listener;
-		    inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr), s, sizeof s);
-		    myIP = s;
    // cout << "start SUCCESS";
 	// 若我们进入这个判断式，则表示我们 bind() 失败
 	if (p == NULL) {
@@ -463,7 +449,6 @@ int server_process(string myPORT) {
 
  	     	switch (mark){
     		  	case 3:{
-    		  		myIP = initMyAddress(charPORT);
       			    log_IP(myIP);
       			    break;
 				}
@@ -717,7 +702,6 @@ int client_process(string MYPORT)
    hints.ai_family = AF_INET; // good for ipv4 and ipv6
    hints.ai_socktype = SOCK_STREAM;
 
-   string myCLientInfo[3];
 
    string Clientlist[4][3];
 
@@ -733,6 +717,7 @@ int client_process(string MYPORT)
    
 
     const char* charPORT = MYPORT.c_str();
+    initMyAddress(charPORT);
     if ((rv = getaddrinfo(NULL, charPORT, &hints, &clientinfo)) != 0) { // return not zero value when error happen
       //fprintf(stderr, "getaddrinfo: %s\n", gai_strerror(rv)); // print error with gai_strerror
       return 1;
@@ -754,12 +739,6 @@ int client_process(string MYPORT)
     myHostname = Hostname_char;
 
     inet_ntop(p->ai_family, get_in_addr((struct sockaddr *)p->ai_addr), s, sizeof s);
-
-   
-    myCLientInfo[0] = myHostname;
-    myCLientInfo[1] = s;
-    myCLientInfo[2] = MYPORT;
-
    
     
 
@@ -845,7 +824,7 @@ int client_process(string MYPORT)
 								//printf("client: connecting to %s\n", s);
 								freeaddrinfo(servinfo); // 全部皆以这个 structure 完成
 								string temp_num = "1 ";
-								msg = temp_num + myCLientInfo[0] + blank + myCLientInfo[1] + blank +myCLientInfo[2];
+								msg = temp_num + myHostname + blank + myIP + blank +myPORT;
 								send(sockfd, (const char*)msg.c_str(), msg.length(), 0);
 									//printf("Done!\n");
 							cse4589_print_and_log("[%s:END]\n", msg_p[0].c_str());
@@ -857,7 +836,7 @@ int client_process(string MYPORT)
             case 2:{
 				        cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0].c_str());
 				        string temp_num = "5 ";
-				        msg = temp_num +  blank + myCLientInfo[1];
+				        msg = temp_num +  blank + myIP;
 				        if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
 				             // printf("Done!\n");
 				        cse4589_print_and_log("[%s:END]\n", msg_p[0].c_str());
@@ -865,7 +844,7 @@ int client_process(string MYPORT)
       		}
 
       		case 3:{
-			          log_IP(myCLientInfo[1]);
+			          log_IP(myIP);
 			          break;
       		}	
       		case 4:{
@@ -931,7 +910,7 @@ int client_process(string MYPORT)
 								      case 1:{
 										        cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0].c_str());
 										        string temp_num = "4 ";
-										        msg = temp_num + myCLientInfo[0] + blank + myCLientInfo[1] + blank + myCLientInfo[2];
+										        msg = temp_num + myHostname + blank + myIP + blank + myPORT;
 										        if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
 										              //printf("Done!\n");
 										        cse4589_print_and_log("[%s:END]\n", msg_p[0].c_str());
@@ -941,7 +920,7 @@ int client_process(string MYPORT)
 								      case 2: {
 										        cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0].c_str());
 										        string temp_num = "5 ";
-										        msg = temp_num + myCLientInfo[0] + blank + myCLientInfo[1] + blank + myCLientInfo[2];
+										        msg = temp_num + myHostname + blank + myIP + blank + myPORT;
 										        if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
 										             // printf("Done!\n");
 										        cse4589_print_and_log("[%s:END]\n", msg_p[0].c_str());
@@ -949,7 +928,7 @@ int client_process(string MYPORT)
 								      }
 
 								      case 3: {
-								          log_IP(myCLientInfo[1]);
+								          log_IP(myIP);
 								          break;
 								      }
 								      case 4:{
@@ -975,7 +954,7 @@ int client_process(string MYPORT)
 								      case 8:{
 									        cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0].c_str());
 									        string temp_num = "6 ";
-									        msg = temp_num + blank + myCLientInfo[1] + (string)blank + msg;
+									        msg = temp_num + blank + myIP + (string)blank + msg;
 									        if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
 									          //printf("Done!\n");
 									        cse4589_print_and_log("[%s:END]\n", msg_p[0].c_str());
@@ -988,7 +967,7 @@ int client_process(string MYPORT)
 								          if(ret == BlockList.end()) {
 										            BlockList.push_back(msg_p[1]);
 										            string temp_num = "2 ";
-										            msg = temp_num + myCLientInfo[1] + blank + msg_p[1];
+										            msg = temp_num + myIP + blank + msg_p[1];
 										            if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
 										              //printf("Done!\n");
 										            cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0].c_str());
@@ -1009,7 +988,7 @@ int client_process(string MYPORT)
 										        else {
 										          BlockList.erase(ret);
 										          string temp_num = "3 ";
-										          msg = temp_num + myCLientInfo[1] + blank + msg_p[1];
+										          msg = temp_num + myIP + blank + msg_p[1];
 										          if(send(sockfd, (const char*)msg.c_str(), msg.length(), 0) == msg.length())
 										            //printf("Done!\n");
 										          cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0].c_str());
