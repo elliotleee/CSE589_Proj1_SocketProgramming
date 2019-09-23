@@ -249,7 +249,7 @@ void log_AUTHOR() {
 void log_PORT() {
 	const char* command = "PORT";
 	cse4589_print_and_log("[%s:SUCCESS]\n", command);
-	cse4589_print_and_log("PORT:%d\n", myPORT);
+	cse4589_print_and_log("PORT:%d\n", str_to_int(myPORT));
 	cse4589_print_and_log("[%s:END]\n", command);
 }
 void log_LIST() {
@@ -264,7 +264,7 @@ void log_LIST() {
   cse4589_print_and_log("[%s:END]\n", cmd.c_str());
 }
 void log_EVENT(string client_ip, string msg) {
-	const char* command = "EVENT";
+	const char* command = "RECEIVED";
 	cse4589_print_and_log("[%s:SUCCESS]\n", command);
 	cse4589_print_and_log("msg from:%s\n[msg]:%s\n", client_ip.c_str(), msg.c_str());
 	cse4589_print_and_log("[%s:END]\n", command);
@@ -282,9 +282,9 @@ void log_STATISTICS() {
   cse4589_print_and_log("[%s:END]\n", command.c_str());
 }
 void log_EVENTS(string from_ip, string msg, string to_ip) {
-	const char* command = "EVENT";
+	const char* command = "RELAYED";
 	cse4589_print_and_log("[%s:SUCCESS]\n", command);
-	cse4589_print_and_log("msg from:%s, to:%s\n[msg]:%s\n", from_ip, to_ip, msg);
+	cse4589_print_and_log("msg from:%s, to:%s\n[msg]:%s\n", (const char*)from_ip.c_str(), (const char*)to_ip.c_str(), (const char*)msg.c_str());
 	cse4589_print_and_log("[%s:END]\n", command);
 }
 void log_BLOCKED(string cli_ip) {
@@ -364,8 +364,57 @@ int client_process(string MYPORT) {
 														msg = temp_num + myHostname + blank+ myIP+ blank + myPORT;
 														if(myServerInfo[0] == msg_p[1] && myServerInfo[1] == msg_p[2])
 														{
+															char charmgs[65535];
+															memset(charmgs,0,sizeof charmgs);
+														
+															string line = "";
+															vector<string> mgs_p;
+															vector<string> line_p;
 															login_st = 1;
+
 															send(sockfd, (const char*)msg.c_str(), msg.length(), 0);
+															recv(sockfd, charmgs, sizeof charmgs, 0);
+
+															line= charmgs;
+															split_msg(line, "\n", line_p);
+
+															for(int i = 0; i < line_p.size(); ++i){
+																split_msg(line_p[i], " ", mgs_p);
+																			switch (str_to_int(mgs_p[0])){
+																			    	case 9:{	
+																			    		//cout<< msg;	
+																			    		msg = mgs_p[3];
+																						for(int i = 4; i < mgs_p.size(); ++i){
+																						      msg = msg +blank+ mgs_p[i];
+																						}
+																						//cout<< msg;
+																						log_EVENT(mgs_p[1],msg);
+																						break;
+																			    	}
+																			    	case 1:{
+																			    		socketlist.clear();
+																	    				for(int i =1; i < (mgs_p.size()-1); i += 3){
+																				      			if(InSetSocket(mgs_p[i+1],mgs_p[i+2]) == NULL ){
+																				               	socketlist.push_back(*newSocketObject(-2, mgs_p[i], mgs_p[i + 1], mgs_p[i + 2]));
+																				           		}
+																				            }										         
+																				          break;
+																			    		
+																			    	}
+																			    	case 6:{
+																			    		msg = mgs_p[2];
+																						for(int i = 3; i < mgs_p.size(); ++i){
+																							msg = msg +blank+ mgs_p[i];
+																						}
+																						log_EVENT(mgs_p[1], msg);
+																			    	}
+
+																			    }
+
+
+															}
+
+
 															cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0].c_str());
 															cse4589_print_and_log("[%s:END]\n", msg_p[0].c_str());
 															break;
@@ -391,7 +440,7 @@ int client_process(string MYPORT) {
 																}
 																if (p2 == NULL) {
 																	cse4589_print_and_log("[%s:ERROR]\n", msg_p[0].c_str());
-																	cse4589_print_and_log("[%s:ERROR]\n", msg_p[0].c_str());
+																	cse4589_print_and_log("[%s:END]\n", msg_p[0].c_str());
 																	break;
 																}
 													
@@ -514,16 +563,26 @@ int client_process(string MYPORT) {
 									        break;							      			
 							      		}
 							      		case 9:{
-							      			if (InSetSocket(msg_p[1])==NULL){
+							      			// cout << msg_p[1];
+							      			if (InSetSocket(msg_p[1])==NULL || !valid_ip(msg_p[1])){
 							      				cse4589_print_and_log("[%s:ERROR]\n", msg_p[0].c_str());	
 							      				cse4589_print_and_log("[%s:END]\n", msg_p[0].c_str());
 							      				break;
-							      		
-										      	}
-										    SocketObject* hd = InSetSocket(sockfd);
+										    }
+										    // SocketObject* hd = InSetSocket(sockfd);
+										    SocketObject *hd = InSetSocket(myIP);
+										    if (hd == NULL ){
+										    	cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0].c_str());								      		  
+									            string temp_num = "2 ";
+									            msg = temp_num + myIP + blank + msg_p[1];
+									            send(sockfd, (const char*)msg.c_str(), msg.length(), 0);
+									            cse4589_print_and_log("[%s:END]\n", msg_p[0].c_str());
+									            break;
+										    }
 											vector<string>::iterator ret;
 											ret = find(hd->blockeduser.begin(), hd->blockeduser.end(), msg_p[1]);
 											if(ret != hd->blockeduser.end()){break;}
+											hd->blockeduser.push_back(msg_p[1]);
 									      		cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0].c_str());								      		  
 									            string temp_num = "2 ";
 									            msg = temp_num + myIP + blank + msg_p[1];
@@ -538,6 +597,15 @@ int client_process(string MYPORT) {
 							      				break;
 							      			}
 							      			SocketObject* hd = InSetSocket(sockfd);
+							      			if(hd == NULL){
+							      				  string temp_num = "3 ";
+										          msg = temp_num + myIP + blank + msg_p[1];
+										          send(sockfd, (const char*)msg.c_str(), msg.length(), 0);
+										          cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0].c_str());
+										          cse4589_print_and_log("[%s:END]\n", msg_p[0].c_str());
+										          break;
+
+							      			}else{
 											vector<string>::iterator ret;
 											ret = find(hd->blockeduser.begin(), hd->blockeduser.end(), msg_p[1]);
 											if(ret == hd->blockeduser.end()){break;}
@@ -547,9 +615,11 @@ int client_process(string MYPORT) {
 										          cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0].c_str());
 										          cse4589_print_and_log("[%s:END]\n", msg_p[0].c_str());
 										          break;
+										    }
 							      		}
 							      		case 11:{
 										        string to_ip = msg_p[1];
+										       // cout<< msg;
 										        string err ="SEND";
 										        if(!valid_ip(to_ip) || InSetSocket(to_ip) == NULL){
 										        	log_Error(err);
@@ -559,6 +629,7 @@ int client_process(string MYPORT) {
 											        for(int i = 2; i < msg_p.size(); ++i){
 											          msg = msg +blank+ msg_p[i];
 											        }
+											        //cout<< msg;
 											        send(sockfd, (const char*)msg.c_str(), msg.length(), 0);
 											        cse4589_print_and_log("[%s:SUCCESS]\n", msg_p[0].c_str());	
 											        cse4589_print_and_log("[%s:END]\n", msg_p[0].c_str());	
@@ -579,11 +650,13 @@ int client_process(string MYPORT) {
 							    split_msg(msg," ", msg_p);
 
 							    switch (str_to_int(msg_p[0])){
-							    	case 9:{		
+							    	case 9:{	
+							    		//cout<< msg;	
 							    		msg = msg_p[3];
 										for(int i = 4; i < msg_p.size(); ++i){
 										      msg = msg +blank+ msg_p[i];
 										}
+										//cout<< msg;
 										log_EVENT(msg_p[1],msg);
 										break;
 							    	}
@@ -739,11 +812,13 @@ int server_process(string MYPORT) {
 					if(hd == NULL){
 						break;
 					}
+					//cout<< msg;
 						vector<string> ::iterator ret;
 						ret = find(hd->blockeduser.begin(), hd->blockeduser.end(), from_ip);
 						if(ret == hd->blockeduser.end()){
 							if(hd->status == "logged-in"){
-							send(hd->cfd, (const char*)msg.c_str(), sizeof msg, 0);
+//cout<< msg;
+							send(hd->cfd, (const char*)msg.c_str(), msg.length(), 0);
 							hd->num_msg_rcv = hd->num_msg_rcv +1;
 							hd2->num_msg_sent = hd2->num_msg_sent +1;
 							string message;
@@ -778,10 +853,12 @@ int server_process(string MYPORT) {
 					} else{
 						hd->status = "logged-in";
 						if(!hd->msgbuffer.empty()){
+							string mgs = "";
+							string hu = "/n";
 							for(vector<string>::iterator it= hd->msgbuffer.begin(); it < hd->msgbuffer.end(); it++){
-								string mgs = *it;
-								send(hd->cfd, (const char*)mgs.c_str(),sizeof mgs,0);
+								mgs = mgs + hu +*it;
 							}
+							send(hd->cfd, (const char*)mgs.c_str(),mgs.length(),0);
 							hd->msgbuffer.clear();
 						}
 					}
@@ -800,7 +877,7 @@ int server_process(string MYPORT) {
 					string to_ip = msg_p[2];
 					SocketObject *hd = InSetSocket(from_ip);
 					if(!valid_ip(to_ip) || InSetSocket(to_ip) == NULL) {
-						//log_Error("BLOCK");
+						log_Error("BLOCK");
 						break;
 					}
 					vector<string> ::iterator ret;
@@ -808,9 +885,8 @@ int server_process(string MYPORT) {
 					if(ret == hd->blockeduser.end()){
 						hd->blockeduser.push_back(to_ip);
 						break;
-					}
-					else{
-						//log_Error("BLOCK");
+					}else{
+						log_Error("BLOCK");
 						break;
 					}
 		            break;
@@ -857,6 +933,7 @@ int server_process(string MYPORT) {
       			case 6:{
       				    string from_ip = msg_p[1];
 						SocketObject* hd2 = InSetSocket(from_ip);
+						string con = "255.255.255.255";
 						if(hd2 == NULL){break;}
 						for(int i = 0; i < socketlist.size(); i++){
 							if(socketlist[i].ip == from_ip) continue;
@@ -868,27 +945,28 @@ int server_process(string MYPORT) {
 								socketlist[i].num_msg_rcv = socketlist[i].num_msg_rcv +1;
 								hd2->num_msg_sent = hd2->num_msg_sent +1;
 								string message;
-								message = msg_p[3];
-									for(int m = 4; m < msg_p.size(); m++){
+								message = msg_p[2];
+									for(int m = 3; m < msg_p.size(); m++){
 										message = message +blank+ msg_p[m];
 									}
-								log_EVENTS(from_ip, message, socketlist[i].ip);
-							}else{
-								socketlist[i].msgbuffer.push_back(msg);
-								socketlist[i].num_msg_rcv = socketlist[i].num_msg_rcv +1;
-								hd2->num_msg_sent = hd2->num_msg_sent +1;
-									string message;
-									message = msg_p[3];
-										for(int m = 4; m < msg_p.size(); m++){
-											message = message +blank+ msg_p[m];
-										}
-								log_EVENTS(from_ip, message, socketlist[i].ip);
-							}
+								log_EVENTS(from_ip, message, con);
+							// }else{
+							// 	socketlist[i].msgbuffer.push_back(msg);
+							// 	socketlist[i].num_msg_rcv = socketlist[i].num_msg_rcv +1;
+							// 	hd2->num_msg_sent = hd2->num_msg_sent +1;
+							// 		string message;
+							// 		message = msg_p[3];
+							// 			for(int m = 4; m < msg_p.size(); m++){
+							// 				message = message +blank+ msg_p[m];
+							// 			}
+							// 	log_EVENTS(from_ip, message, con);
+							// }
 							}
 						}
 
 						  	break;
       			}
+      		}
       			case 7:{
 					string message = "1";
 					for (unsigned int i = 0; i < socketlist.size(); ++i) {
@@ -905,7 +983,7 @@ int server_process(string MYPORT) {
 	     for (int i = 0; i < 256; i++) {
 	        fdtemp = masterlist[i];
 	        if (FD_ISSET(fdtemp, &readfds)) {
-	          if (recv(fdtemp, charmsg, sizeof charmsg, 0) == 0) { // Check if closing
+	          if (read(fdtemp, charmsg, sizeof charmsg) == 0) { // Check if closing
 	            close(fdtemp);
 	            masterlist[i] = 0;
 	          } else {  // handle events
@@ -915,7 +993,7 @@ int server_process(string MYPORT) {
 	      			case 9:{
 	      				string from_ip = msg_p[1];
 			        	string to_ip = msg_p[2];
-
+//cout<< msg;
 						SocketObject* hd = InSetSocket(to_ip);
 						SocketObject* hd2 = InSetSocket(from_ip);
 
@@ -926,7 +1004,8 @@ int server_process(string MYPORT) {
 							ret = find(hd->blockeduser.begin(), hd->blockeduser.end(), from_ip);
 							if(ret == hd->blockeduser.end()){
 								if(hd->status == "logged-in"){
-								send(hd->cfd, (const char*)msg.c_str(), sizeof msg, 0);
+									//cout<< msg;
+								send(hd->cfd, (const char*)msg.c_str(),msg.length(), 0);
 								hd->num_msg_rcv = hd->num_msg_rcv +1;
 								hd2->num_msg_sent = hd2->num_msg_sent +1;
 								string message;
@@ -964,7 +1043,7 @@ int server_process(string MYPORT) {
 							if(!hd->msgbuffer.empty()){
 								for(vector<string>::iterator it= hd->msgbuffer.begin(); it < hd->msgbuffer.end(); it++){
 									string mgs = *it;
-									send(hd->cfd, (const char*)mgs.c_str(),sizeof mgs,0);
+									send(hd->cfd, (const char*)mgs.c_str(),mgs.length(),0);
 								}
 								hd->msgbuffer.clear();
 							}
@@ -985,7 +1064,7 @@ int server_process(string MYPORT) {
 						string to_ip = msg_p[2];
 						SocketObject *hd = InSetSocket(from_ip);
 						if(!valid_ip(to_ip) || InSetSocket(to_ip) == NULL) {
-							log_Error("BLOCKED");
+							log_Error("BLOCK");
 						}
 						vector<string> ::iterator ret;
 						ret = find(hd->blockeduser.begin(), hd->blockeduser.end(), to_ip);
@@ -993,7 +1072,7 @@ int server_process(string MYPORT) {
 							hd->blockeduser.push_back(to_ip);
 						}
 						else{
-							log_Error("BLOCKED");
+							log_Error("BLOCK");
 						}
 			            break;
 	      			}
@@ -1003,12 +1082,12 @@ int server_process(string MYPORT) {
 						string to_ip = msg_p[2];
 						SocketObject *hd = InSetSocket(from_ip);
 						if(!valid_ip(to_ip) || InSetSocket(to_ip) == NULL) {
-							log_Error("BLOCKED");
+							log_Error("UNBLOCK");
 						}
 						vector<string> ::iterator ret;
 						ret = find(hd->blockeduser.begin(), hd->blockeduser.end(), to_ip);
 						if(ret == hd->blockeduser.end()){
-							log_Error("BLOCKED");
+							log_Error("UNBLOCK");
 						}
 						else{
 							hd->blockeduser.erase(ret);
@@ -1038,6 +1117,7 @@ int server_process(string MYPORT) {
 	      				string from_ip = msg_p[1];
 						SocketObject* hd2 = InSetSocket(from_ip);
 						if(hd2 == NULL){break;}
+						string con = "255.255.255.255";
 
 						for(int i = 0; i < socketlist.size(); ++i){
 							if (socketlist[i].ip == from_ip){
@@ -1051,24 +1131,15 @@ int server_process(string MYPORT) {
 								socketlist[i].num_msg_rcv = socketlist[i].num_msg_rcv +1;
 								hd2->num_msg_sent = hd2->num_msg_sent +1;
 								string message;
-								message = msg_p[3];
-									for(int m = 4; m < msg_p.size(); m++){
+								message = msg_p[2];
+									for(int m = 3; m < msg_p.size(); m++){
 										message = message +blank+ msg_p[m];
 									}
-								log_EVENTS(from_ip, message, socketlist[i].ip);
+
+								log_EVENTS(from_ip, message, con);
+								}
 							}
-							}else{
-								socketlist[i].msgbuffer.push_back(msg);
-								socketlist[i].num_msg_rcv = socketlist[i].num_msg_rcv +1;
-								hd2->num_msg_sent = hd2->num_msg_sent +1;
-									string message;
-									message = msg_p[3];
-										for(int m = 4; m < msg_p.size(); m++){
-											message = message +blank+ msg_p[m];
-										}
-								log_EVENTS(from_ip, message, socketlist[i].ip);
-							}
-							}
+						}
 
 						  	break;
 	      			}

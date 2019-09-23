@@ -1,0 +1,11 @@
+[IP:SUCCESS]
+IP:192.168.1.174
+[IP:END]
+[LIST:SUCCESS]
+1    elliot-pc                          192.168.1.174       6666    
+2    elliot-pc                          192.168.1.174       9999    
+[LIST:END]
+[RELAYED:SUCCESS]
+msg from:192.168.1.174, to:192.168.1.174
+[msg]:123
+[RELAYED:END]

@@ -3,6 +3,5 @@
 
 #define HOSTNAME_LEN 128
 #define PATH_LEN 256
-#define MAX_BUF_LEN 256
 
 #endif
